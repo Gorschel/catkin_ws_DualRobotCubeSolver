@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/dynamixel_controllers/share/gennodejs/ros/dynamixel_controllers/_index.js

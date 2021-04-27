@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/trajectory_msgs/share/roseus/ros/trajectory_msgs/msg/JointTrajectoryPoint.l

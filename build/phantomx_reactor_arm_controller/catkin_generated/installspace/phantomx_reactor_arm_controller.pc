@@ -1,0 +1,8 @@
+prefix=/home/georg/catkin_ws/install
+
+Name: phantomx_reactor_arm_controller
+Description: Description of phantomx_reactor_arm_controller
+Version: 0.1.4
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

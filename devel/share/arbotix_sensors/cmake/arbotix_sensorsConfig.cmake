@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake

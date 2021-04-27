@@ -1,0 +1,8 @@
+prefix=/home/georg/catkin_ws/devel/.private/arbotix_sensors
+
+Name: arbotix_sensors
+Description: Description of arbotix_sensors
+Version: 0.10.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

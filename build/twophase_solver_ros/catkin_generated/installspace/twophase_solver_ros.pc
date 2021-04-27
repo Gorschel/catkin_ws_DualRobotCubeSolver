@@ -1,0 +1,8 @@
+prefix=/home/georg/catkin_ws/install
+
+Name: twophase_solver_ros
+Description: Description of twophase_solver_ros
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -ltwophase_solver_ros
+Requires: roscpp rospy std_msgs

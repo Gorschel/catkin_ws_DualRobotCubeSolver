@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/arbotix_msgs/share/arbotix_msgs/cmake/arbotix_msgs-msg-paths.cmake

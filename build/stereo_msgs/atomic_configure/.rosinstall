@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/georg/catkin_ws/devel/.private/stereo_msgs/setup.sh

@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/arbotix_controllers/lib/pkgconfig/arbotix_controllers.pc

@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/twophase_solver_ros/lib/pkgconfig/twophase_solver_ros.pc

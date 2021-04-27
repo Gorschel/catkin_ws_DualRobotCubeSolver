@@ -1,0 +1,8 @@
+prefix=/home/georg/catkin_ws/devel/.private/phantomx_reactor_arm_moveit_config
+
+Name: phantomx_reactor_arm_moveit_config
+Description: Description of phantomx_reactor_arm_moveit_config
+Version: 0.3.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

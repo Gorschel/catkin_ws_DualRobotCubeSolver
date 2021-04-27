@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/twophase_solver_ros/share/roseus/ros/twophase_solver_ros/srv/Solver.l

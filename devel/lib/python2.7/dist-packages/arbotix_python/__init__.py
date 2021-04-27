@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/arbotix_python/lib/python2.7/dist-packages/arbotix_python/__init__.py

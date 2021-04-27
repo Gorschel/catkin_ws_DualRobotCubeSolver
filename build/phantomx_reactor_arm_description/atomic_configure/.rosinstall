@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/georg/catkin_ws/devel/.private/phantomx_reactor_arm_description/setup.sh

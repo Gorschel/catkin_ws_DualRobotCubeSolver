@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/stereo_msgs/include/stereo_msgs/DisparityImage.h

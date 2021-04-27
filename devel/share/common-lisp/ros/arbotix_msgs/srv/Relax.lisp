@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/arbotix_msgs/share/common-lisp/ros/arbotix_msgs/srv/Relax.lisp

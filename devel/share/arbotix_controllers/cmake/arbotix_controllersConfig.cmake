@@ -1,0 +1,1 @@
+/home/georg/catkin_ws/devel/.private/arbotix_controllers/share/arbotix_controllers/cmake/arbotix_controllersConfig.cmake

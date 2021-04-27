@@ -1,0 +1,7 @@
+Symlinking /home/georg/catkin_ws/devel/lib/pkgconfig/arbotix_python.pc
+Symlinking /home/georg/catkin_ws/devel/lib/python2.7/dist-packages/arbotix_python/__init__.py
+Symlinking /home/georg/catkin_ws/devel/bin/arbotix_terminal
+Symlinking /home/georg/catkin_ws/devel/bin/arbotix_gui
+Symlinking /home/georg/catkin_ws/devel/bin/cmake.lock
+Symlinking /home/georg/catkin_ws/devel/share/arbotix_python/cmake/arbotix_pythonConfig-version.cmake
+Symlinking /home/georg/catkin_ws/devel/share/arbotix_python/cmake/arbotix_pythonConfig.cmake

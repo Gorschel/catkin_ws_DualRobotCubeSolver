@@ -1,0 +1,7 @@
+set(phantomx_reactor_arm_controller_SETUP_PY_SETUP_MODULE "distutils.core")
+set(phantomx_reactor_arm_controller_SETUP_PY_VERSION "0.1.4")
+set(phantomx_reactor_arm_controller_SETUP_PY_SCRIPTS "")
+set(phantomx_reactor_arm_controller_SETUP_PY_PACKAGES "")
+set(phantomx_reactor_arm_controller_SETUP_PY_PACKAGE_DIRS "src")
+set(phantomx_reactor_arm_controller_SETUP_PY_MODULES "")
+set(phantomx_reactor_arm_controller_SETUP_PY_MODULE_DIRS "")

@@ -1,0 +1,8 @@
+prefix=/home/georg/catkin_ws/devel/.private/arbotix_firmware
+
+Name: arbotix_firmware
+Description: Description of arbotix_firmware
+Version: 0.10.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

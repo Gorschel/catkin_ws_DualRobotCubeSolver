@@ -1,0 +1,8 @@
+prefix=/home/georg/catkin_ws/devel/.private/arbotix_controllers
+
+Name: arbotix_controllers
+Description: Description of arbotix_controllers
+Version: 0.10.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
