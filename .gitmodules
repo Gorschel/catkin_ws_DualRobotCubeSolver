@@ -1,0 +1,16 @@
+[submodule "src/arbotix_ros"]
+	path = src/arbotix_ros
+	url = https://github.com/vanadiumlabs/arbotix_ros
+[submodule "src/common_msgs"]
+	path = src/common_msgs
+	url = https://github.com/ros/common_msgs
+[submodule "src/dynamixel_motor"]
+	path = src/dynamixel_motor
+	url = https://github.com/arebgun/dynamixel_motor
+[submodule "src/phantomx_reactor_arm"]
+	path = src/phantomx_reactor_arm
+	url = https://github.com/RobotnikAutomation/phantomx_reactor_arm
+[submodule "src/twophase_solver_ros"]
+	path = src/twophase_solver_ros
+	url = https://github.com/Gorschel/twophase_solver_ros
+
