@@ -1,9 +1,0 @@
-{
-    "python.pythonPath": "/usr/bin/python",
-    "cSpell.enableFiletypes": [
-        "cmake",
-        "xml"
-    ],
-    "git.ignoreLimitWarning": true,
-    "cmake.configureOnOpen": false
-}
