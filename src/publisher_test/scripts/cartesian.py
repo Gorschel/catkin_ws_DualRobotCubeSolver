@@ -41,8 +41,11 @@ def BspProg():
         pub_twist.publish(j5)
         pub_grip.publish(j6)
 
-        rate.sleep()
+
+        #UNFERTIG
         
+        rate.sleep()
+
 
 
 if __name__ == '__main__':

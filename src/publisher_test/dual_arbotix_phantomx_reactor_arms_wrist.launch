@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <!--<group ns="robot0">-->
+        
+        <include file="$(find phantomx_reactor_arm_controller)/launch/arbotix_phantomx_reactor_arm_wrist.launch"/>
+
+        <!-- ttyUSB symlink parameter override-->
+        <param name="arbotix/port" value="/dev/ttyUSB_REACTOR0"/>
+        
+    <!--</group>-->
+
+    
+
+</launch>
