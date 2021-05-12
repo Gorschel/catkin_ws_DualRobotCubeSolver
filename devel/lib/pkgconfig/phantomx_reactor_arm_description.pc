@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/phantomx_reactor_arm_description/lib/pkgconfig/phantomx_reactor_arm_description.pc

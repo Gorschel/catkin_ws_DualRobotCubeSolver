@@ -1,8 +1,0 @@
-prefix=/home/georg/catkin_ws/devel/.private/twophase_solver_ros
-
-Name: twophase_solver_ros
-Description: Description of twophase_solver_ros
-Version: 0.0.0
-Cflags: -I/home/georg/catkin_ws/devel/.private/twophase_solver_ros/include -I/home/georg/catkin_ws/src/twophase_solver_ros/include
-Libs: -L${prefix}/lib -ltwophase_solver_ros
-Requires: roscpp rospy std_msgs

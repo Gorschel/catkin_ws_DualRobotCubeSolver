@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/shape_msgs/lib/pkgconfig/shape_msgs.pc

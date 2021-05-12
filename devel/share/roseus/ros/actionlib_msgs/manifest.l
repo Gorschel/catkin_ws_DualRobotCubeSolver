@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/actionlib_msgs/share/roseus/ros/actionlib_msgs/manifest.l

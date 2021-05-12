@@ -1,6 +1,0 @@
-devel_space: /home/georg/catkin_ws/devel
-install: false
-install_space: /home/georg/catkin_ws/install
-profile: default
-source_space: /home/georg/catkin_ws/src
-workspace: /home/georg/catkin_ws

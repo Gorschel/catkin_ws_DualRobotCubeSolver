@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/dynamixel_controllers/share/gennodejs/ros/dynamixel_controllers/srv/StopController.js

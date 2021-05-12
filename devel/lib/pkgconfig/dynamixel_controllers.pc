@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/dynamixel_controllers/lib/pkgconfig/dynamixel_controllers.pc

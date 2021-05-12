@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/arbotix_msgs/share/arbotix_msgs/cmake/arbotix_msgsConfig.cmake

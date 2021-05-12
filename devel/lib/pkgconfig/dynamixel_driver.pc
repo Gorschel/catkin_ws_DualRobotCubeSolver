@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/dynamixel_driver/lib/pkgconfig/dynamixel_driver.pc

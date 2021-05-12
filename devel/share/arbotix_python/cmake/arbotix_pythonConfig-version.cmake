@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/arbotix_python/share/arbotix_python/cmake/arbotix_pythonConfig-version.cmake

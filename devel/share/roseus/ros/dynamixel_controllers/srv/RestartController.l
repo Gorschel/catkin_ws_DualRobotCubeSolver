@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/dynamixel_controllers/share/roseus/ros/dynamixel_controllers/srv/RestartController.l

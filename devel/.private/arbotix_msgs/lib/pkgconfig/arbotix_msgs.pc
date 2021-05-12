@@ -1,8 +1,0 @@
-prefix=/home/georg/catkin_ws/devel/.private/arbotix_msgs
-
-Name: arbotix_msgs
-Description: Description of arbotix_msgs
-Version: 0.10.0
-Cflags: -I/home/georg/catkin_ws/devel/.private/arbotix_msgs/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime std_msgs

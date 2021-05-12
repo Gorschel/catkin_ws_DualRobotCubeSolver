@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/sensor_msgs/share/common-lisp/ros/sensor_msgs/msg/_package_PointCloud.lisp

@@ -1,1 +1,0 @@
-/home/georg/catkin_ws/devel/.private/arbotix_firmware/share/arbotix_firmware/cmake/arbotix_firmwareConfig-version.cmake
