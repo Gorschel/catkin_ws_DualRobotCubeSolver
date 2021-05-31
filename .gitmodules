@@ -13,4 +13,7 @@
 [submodule "src/twophase_solver_ros"]
 	path = src/twophase_solver_ros
 	url = git@github.com:Gorschel/twophase_solver_ros.git
+[submodule "src/multimaster"]
+	path = src/multimaster
+	url = https://github.com/fkie/multimaster_fkie.git
 
