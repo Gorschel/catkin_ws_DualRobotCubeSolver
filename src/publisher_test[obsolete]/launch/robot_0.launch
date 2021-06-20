@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<launch>
+
+    <remap from="joint_states"                          to="joint_states_0"/>
+    <remap from="joint_command"                         to="joint_command_0"/>
+
+    <remap from="elbow_pitch_joint/command"             to="elbow_pitch_joint_0/command"/>
+    <remap from="elbow_pitch_mimic_joint/command"       to="elbow_pitch_mimic_joint_0/command"/>
+
+    <remap from="gripper_revolute_joint/command"        to="gripper_revolute_joint_0/command"/>
+    <remap from="gripper_prismatic_joint/command"        to="gripper_prismatic_joint_0/command"/>
+
+    <remap from="shoulder_pitch_joint/command"          to="shoulder_pitch_joint_0/command"/>
+    <remap from="shoulder_pitch_mimic_joint/command"    to="shoulder_pitch_mimic_joint_0/command"/>
+
+    <remap from="shoulder_yaw_joint/command"            to="shoulder_yaw_joint_0/command"/>
+
+    <remap from="wrist_pitch_joint/command"             to="wrist_pitch_joint_0/command"/>
+    <remap from="wrist_roll_joint/command"              to="wrist_roll_joint_0/command"/>
+
+
+    <!--vmtl remapping für andere nodes nötig-->
+
+
+    <!-- Load arbotix_driver -->
+    <node name="arbotix_0" pkg="arbotix_python" type="arbotix_driver" output="screen">
+        <!-- Load params in ROS parameter server -->
+        <rosparam file="$(find phantomx_reactor_arm_controller)/config/arbotix_config_phantomx_wrist.yaml" command="load" />
+    </node>
+
+    <!-- This node coordinates the motors with the parallel/mimic joints -->
+    <node name="phantomx_reactor_controller_0" pkg="phantomx_reactor_arm_controller" type="phantomx_reactor_parallel_motor_joints.py" output="screen"/>
+
+    <!-- Start the node to publish and command the parallel gripper -->
+    <node name="phantomx_reactor_parallel_gripper_0" pkg="phantomx_reactor_arm_controller" type="phantomx_reactor_gripper.py" output="screen" >
+        <param name="rate" value="15"/>
+    </node>
+
+    <param name="arbotix_0/port" value="/dev/ttyUSB_REACTOR0"/>
+
+
+</launch>

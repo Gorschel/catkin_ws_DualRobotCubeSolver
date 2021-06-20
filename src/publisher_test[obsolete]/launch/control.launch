@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!--launch control nodes-->
+    <include file="$(find publisher_test)/launch/robot_0.launch"/>
+    <include file="$(find publisher_test)/launch/robot_1.launch"/>
+
+
+</launch>
