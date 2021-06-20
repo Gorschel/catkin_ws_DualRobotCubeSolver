@@ -1,4 +1,4 @@
-Linked: (/home/georg/catkin_ws/devel/.private/arbotix_sensors/lib/pkgconfig/arbotix_sensors.pc, /home/georg/catkin_ws/devel/lib/pkgconfig/arbotix_sensors.pc)
-Linked: (/home/georg/catkin_ws/devel/.private/arbotix_sensors/lib/python2.7/dist-packages/arbotix_sensors/__init__.py, /home/georg/catkin_ws/devel/lib/python2.7/dist-packages/arbotix_sensors/__init__.py)
-Linked: (/home/georg/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake, /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake)
-Linked: (/home/georg/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake, /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake)
+Symlinking /home/georg/catkin_ws/devel/lib/python2.7/dist-packages/arbotix_sensors/__init__.py
+Symlinking /home/georg/catkin_ws/devel/lib/pkgconfig/arbotix_sensors.pc
+Symlinking /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake
+Symlinking /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake
