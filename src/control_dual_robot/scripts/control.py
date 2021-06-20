@@ -92,8 +92,10 @@ class robot_structure(object):
         self.d1 = 26
         # shoulder length
         self.d2 = 147
-        self.d2x = 38.41 # ~ 22 + (32 / 2)
+        self.d2x = 38.4057 # ~ 22 + (32 / 2)
         self.d2y = 145
+        self.psix = m.atan(self.d2y / self.d2x) #~1.31
+        self.psiy = m.atan(self.d2x / self.d2y) #~0.26
         # elbow length
         self.d3 = 150
         # wrist length
@@ -257,8 +259,9 @@ def check4limits(joints = joints()):
 def inv_kinematics(orientation, TCP = coord):
     """ get joint values for given tool center coordinate (make sure coord values have been converted). orientation values: 'upw', 'hor', 'dwd' """
     state = joints()
+
+    # get consts
     const = robot_structure()
-    # create
     d45 = const.d4 + const.d5
     if   orientation == 'hor':
         v3tcp = vector2D(a = point2D(r =  d45))
@@ -267,29 +270,37 @@ def inv_kinematics(orientation, TCP = coord):
     elif orientation == 'dwd':
         v3tcp = vector2D(a = point2D(z = -d45))
     else: raise Exception("orientation not specified")
+
     # get points
     p1 = point2D(z = const.d0 + const.d1)
     p3 = TCP - v3tcp
+
     # get vectors
     v01 = vector2D(b = p1)
     v03 = vector2D(b = p3)
     v13 = vector2D(p1, p3)
+
+    # check if point reachable
+    pass
+
     #get angles [RAD]
     alpha = cossatz(abs(v13), const.d2, const.d3)
     beta = cossatz(const.d3, const.d2, abs(v13))
     gamma = cossatz(abs(v13), const.d3, const.d2)
     phi = cossatz(abs(v01), abs(v13), abs(v03))
-    psi = m.atan(const.d2y / const.d2x)
+    #psi1 = m.atan(const)
+    #psi2 = m.atan(const.d2y / const.d2x)
     chi = phi - m.pi/2 #m.atan2(p3.z - p1.z, p3.r) # vorzeichen !
+
     # get joint values [RAD]
     state.j0 = m.atan2(TCP.y, TCP.x)
-    state.j1 = m.pi - alpha - phi
-    state.j2 = m.pi - beta - psi
+    state.j1 = m.pi - alpha - phi - const.psiy
+    state.j2 = m.pi - beta - const.psix
     if   orientation == 'hor': state.j3 = gamma - chi
     elif orientation == 'upw': state.j3 = m.pi/2 + gamma + chi
     elif orientation == 'dwd': state.j3 = m.pi/2 - gamma - chi
 
-    return state    # returns whole set of joints including zero joints
+    return state    # returns joints obj
 
 def BspProgROS():
     rp0 = joint_publisher(0)
@@ -297,17 +308,17 @@ def BspProgROS():
     #ist = joints()
     #r1 = joints()
 
-    TCP = coord(z = 200.0, r = 150.0, theta = 0.0)
+    TCP = coord(z = 240.0, r = 350.0, theta = 0.0)
 
     while not rospy.is_shutdown():
-        rate.sleep()
+        #rate.sleep()
 
         #TCP.z += 0.01
         #TCP.cnv_cylindrical()
         #print TCP
 
-        #soll = inv_kinematics('hor', TCP)
-        soll = joints()
+        soll = inv_kinematics('hor', TCP)
+        #soll = joints()
         rp0.publish(soll)
 
 def debug():
