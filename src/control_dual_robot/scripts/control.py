@@ -6,7 +6,7 @@ from std_msgs.msg import String, Float64
 import math as m
 
 class joints:
-    """ todo. prepare to publish joint set"""
+    """ todo. prepare to publish joint set """
     def j_init(self, j, th):
         if th is None: self.j = 0.0
         else: self.j = th
@@ -48,7 +48,7 @@ class joint_publisher:
         self.j5 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/gripper_revolute_joint/command', Float64, queue_size=1)
 
     def publish(self, soll):
-        """ publishes set of joint values"""
+        """ publishes set of joint values """
         # check for illegal joint values
         robot = check4limits(soll)
         # publish
@@ -60,7 +60,7 @@ class joint_publisher:
         self.j5.publish(robot.j5)
 
 class hw_limits(object):
-    """ Approximated hardware limits. Exceeding them will result in structural collision"""
+    """ Approximated hardware limits. Exceeding them will result in structural collision """
     __init = False
     def __init__(self):
         self.th0min = -m.pi
@@ -84,20 +84,20 @@ class hw_limits(object):
         else: super(hw_limits, self).__setattr__(attr, value)
 
 class robot_structure(object):
-    """ structural parameters. maybe get values from stl files for better precision"""
+    """ structural parameters. maybe get values from stl files for better precision """
     __init = False
     def __init__(self):
         # base height
         self.d0 = 12.5 + 78
         self.d1 = 26
         # shoulder length
-        self.d2 = 147
-        self.d2x = 38.4057 # ~ 22 + (32 / 2)
-        self.d2y = 145
-        self.psix = m.atan(self.d2y / self.d2x) #~1.31
-        self.psiy = m.atan(self.d2x / self.d2y) #~0.26
+        self.d2 = 150
+        #self.d2r = 5*m.sqrt(59) #38.4057 # ~ 22 + (32 / 2)
+        self.d2z = 145
+        self.psir = 1.3118747847887 #m.asin(self.d2z / self.d2) #~1.31
+        self.psiz = 0.25892154200621 #m.acos(self.d2z / self.d2) #~0.26
         # elbow length
-        self.d3 = 150
+        self.d3 = 147
         # wrist length
         self.d4 = 70
         self.d5 = 93
@@ -109,28 +109,25 @@ class robot_structure(object):
         else: super(robot_structure, self).__setattr__(attr, value)
 
 class coord:
-    """ class containing robot coordinate structure and conversion methods"""
-    def __init__(self, x = None, y = None, z = None, r = None, theta = None):
-        """ """
-        self.x = x
-        self.y = y
-        self.z = z
-        self.r = r
-        self.th = theta
-
-        if x is None: self.x = 0.0
-        if y is None: self.y = 0.0
-        if z is None: self.z = 0.0
-        if r is None: self.r = 0.0
-        if theta is None: self.th = 0.0
+    """ class containing robot coordinate structure and conversion methods """
+    def __init__(self, x = None, y = None, z = None, r = None, th = None):
+        """  """
+        if x is None and y is None: fill = self.cnv_catesian
+        if r is None and th is None: fill = self.cnv_cylindrical
+        self.x = x if x is not None else 0.0
+        self.y = y if y is not None else 0.0
+        self.z = z if z is not None else 0.0
+        self.r = r if r is not None else 0.0
+        self.th = th if th is not None else 0.0
+        fill()
 
     def cnv_catesian(self):
-        """ convert to cartesian coordinate form"""
-        self.x = r * m.cos(self.th)
-        self.y = r * m.sin(self.th)
+        """ convert to cartesian coordinate form """
+        self.x = self.r * m.cos(self.th)
+        self.y = self.r * m.sin(self.th)
 
     def cnv_cylindrical(self):
-        """ convert to cylindrical coordinate form"""
+        """ convert to cylindrical coordinate form """
         self.r = m.sqrt(pow(self.x, 2) + pow(self.y, 2))
         self.th = m.atan2(self.y, self.x)
 
@@ -151,7 +148,7 @@ class coord:
         return "%s x:%s y:%s z:%s r:%s th:%s " % (self.__class__.__name__ , self.x, self.y, self.z, self.r, self.th)
 
 class point2D:
-    """ point in r-z plane"""
+    """ point in r-z plane """
     def __init__(self, r = None, z = None):
         if r is None:
             self.r = 0.0
@@ -183,7 +180,7 @@ class point2D:
         return "%s r:%s z:%s" % (self.__class__.__name__ , self.r, self.z)
 
 class vector2D:
-    """ vector in r-z plane"""
+    """ vector in r-z plane """
     def __init__(self, a = None, b = None):
         if a is None and b is None:
             self.r = 0.0
@@ -240,10 +237,14 @@ class vector2D:
         return "%s r:%s z:%s" % (self.__class__.__name__ , self.r, self.z)
 
 def cossatz(a, b, c):
-    return m.acos((pow(a,2)+pow(b,2)-pow(c,2))/(2*a*b))
+    try:
+        angle = m.acos((pow(a,2)+pow(b,2)-pow(c,2))/(2*a*b))
+    except ValueError:
+        raise Exception("! desired point out of reach !")
+    return angle
 
 def check4limits(joints = joints()):
-    """check if desired joint state is reachable. No colission warning"""
+    """ check if desired joint state is reachable. No colission warning """
     lim = hw_limits()
     if (
     lim.th0min <= joints.j0 <= lim.th0max and
@@ -254,10 +255,10 @@ def check4limits(joints = joints()):
     lim.th5min <= joints.j5 <= lim.th5max ) :
         return joints
     else:
-        raise Exception('desired joint states off hardware limits!')
+        raise Exception('! desired joint states off hardware limits !')
 
 def inv_kinematics(orientation, TCP = coord):
-    """ get joint values for given tool center coordinate (make sure coord values have been converted). orientation values: 'upw', 'hor', 'dwd' """
+    """ <<--joints(). get joint values for given tool center coordinate (make sure coord values have been converted). orientation values: 'upw', 'hor', 'dwd' """
     state = joints()
 
     # get consts
@@ -280,35 +281,32 @@ def inv_kinematics(orientation, TCP = coord):
     v03 = vector2D(b = p3)
     v13 = vector2D(p1, p3)
 
-    # check if point reachable
-    pass
+    # maybe check if point reachable
+    pass #todo
 
     #get angles [RAD]
     alpha = cossatz(abs(v13), const.d2, const.d3)
     beta = cossatz(const.d3, const.d2, abs(v13))
     gamma = cossatz(abs(v13), const.d3, const.d2)
     phi = cossatz(abs(v01), abs(v13), abs(v03))
-    #psi1 = m.atan(const)
-    #psi2 = m.atan(const.d2y / const.d2x)
-    chi = phi - m.pi/2 #m.atan2(p3.z - p1.z, p3.r) # vorzeichen !
+    if v03.r < 0.0: phi = 2*m.pi - phi # case for phi > pi (point close to base)
 
     # get joint values [RAD]
     state.j0 = m.atan2(TCP.y, TCP.x)
-    state.j1 = m.pi - alpha - phi - const.psiy
-    state.j2 = m.pi - beta - const.psix
-    if   orientation == 'hor': state.j3 = gamma - chi
-    elif orientation == 'upw': state.j3 = m.pi/2 + gamma + chi
-    elif orientation == 'dwd': state.j3 = m.pi/2 - gamma - chi
+    state.j1 = m.pi - alpha - phi - const.psiz
+    state.j2 = m.pi - beta - const.psir
+    if   orientation == 'hor': state.j3 = -m.pi/2 - gamma + phi
+    elif orientation == 'upw': state.j3 = -m.pi - gamma + phi
+    elif orientation == 'dwd': state.j3 = - gamma + phi
 
-    return state    # returns joints obj
+    return state
 
 def BspProgROS():
     rp0 = joint_publisher(0)
-    #rp1 = joint_publisher(1)
-    #ist = joints()
-    #r1 = joints()
+    rp1 = joint_publisher(1)
 
-    TCP = coord(z = 240.0, r = 350.0, theta = 0.0)
+    #TCP = coord(x=150, y=-150, z=100)
+    TCP = coord(r = 100, z=350, th=0)
 
     while not rospy.is_shutdown():
         #rate.sleep()
@@ -317,9 +315,10 @@ def BspProgROS():
         #TCP.cnv_cylindrical()
         #print TCP
 
-        soll = inv_kinematics('hor', TCP)
-        #soll = joints()
-        rp0.publish(soll)
+        r0 = inv_kinematics('hor', TCP)
+        r1 = inv_kinematics('hor', TCP)
+        rp0.publish(r0)
+        rp1.publish(r1)
 
 def debug():
     """ module testing etc"""
