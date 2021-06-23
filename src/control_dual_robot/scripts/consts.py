@@ -1,10 +1,14 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import math as m
+from misc import cossatz
 
-class hw_limits(object):
+
+class Hw_limits(object):
     """ Approximated hardware limits. Exceeding them will result in structural collision """
     __init = False
+
     def __init__(self):
         self.th0min = -m.pi
         self.th1min = -m.pi/2
@@ -24,11 +28,13 @@ class hw_limits(object):
 
     def __setattr__(self, attr, value):
         if self.__init: raise Exception('value may not be modified!')
-        else: super(hw_limits, self).__setattr__(attr, value)
+        else: super(Hw_limits, self).__setattr__(attr, value)
 
-class robot_structure(object):
+
+class Robot_structure(object):
     """ structural parameters. maybe get values from stl files for better precision """
     __init = False
+
     def __init__(self):
         # base height
         self.d0 = 12.5 + 78
@@ -45,9 +51,30 @@ class robot_structure(object):
         self.d4 = 70
         self.d5 = 93
 
+        self.closed = Grip_structure().closed
+
         self.__init = True
 
     def __setattr__(self, attr, value):
         if self.__init: raise Exception('value may not be modified!')
-        else: super(robot_structure, self).__setattr__(attr, value)
+        else: super(Robot_structure, self).__setattr__(attr, value)
+
+class Grip_structure(object):
+    """ structureal parameters of cube and gripper"""
+    __init = False
+
+    def __init__(self):
+        self.cubesize = 56.0
+        self.servo_horn_radius = 8.0
+        self.open_gripper = 60.0
+        self.sponge_dist = 1.0
+        self.closed = cossatz(  a = self.servo_horn_radius,
+                                b = (self.cubesize - self.sponge_dist) / 2,
+                                c = (self.open_gripper - 2 * self.servo_horn_radius) / 2
+        )
+        self.__init = True
+
+    def __setattr__(self, attr, value):
+        if self.__init: raise Exception('value may not be modified!')
+        else: super(Grip_structure, self).__setattr__(attr, value)
 
