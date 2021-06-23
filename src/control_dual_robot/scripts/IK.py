@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-import consts
-import joints
-import coord
+import math as m
+
+from  consts import robot_structure
+from joints import joints
+from coord import *
 
 def cossatz(a, b, c):
     try:

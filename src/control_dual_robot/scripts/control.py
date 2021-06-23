@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # license removed for brevity
+
 import rospy
-from std_msgs.msg import String, Float64
 import math as m
 
-import coord
-import joints
-import IK
+from coord import coord
+from joints import joint_publisher
+from IK import inv_kinematics
 
 def BspProgROS():
     rp0 = joint_publisher(0)
     rp1 = joint_publisher(1)
-    TCP = coord(r = 100, z=350, th=0)
+    TCP = coord(r = 150, z=350, th=0)
 
     while not rospy.is_shutdown():
         r0 = inv_kinematics('hor', TCP)

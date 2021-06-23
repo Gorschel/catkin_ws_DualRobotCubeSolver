@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+import math as m
+
 class coord:
     """ class containing robot coordinate structure and conversion methods """
     def __init__(self, x = None, y = None, z = None, r = None, th = None):
         """  """
         if x is None and y is None: autocvt = self.cnv_catesian
         if r is None and th is None: autocvt = self.cnv_cylindrical
-        if x is None and y is None and z is None and r is None and th is None: autocvt = pass
+        if x is None and y is None and z is None and r is None and th is None: autocvt = None
         self.x = x if x is not None else 0.0
         self.y = y if y is not None else 0.0
         self.z = z if z is not None else 0.0

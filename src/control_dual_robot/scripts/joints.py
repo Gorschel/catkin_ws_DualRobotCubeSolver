@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-import consts
+from std_msgs.msg import String, Float64
+
+from consts import hw_limits
 
 class joints:
     """ todo. prepare to publish joint set """
@@ -32,7 +34,7 @@ class joint_publisher:
     def publish(self, joints):
         """ publishes set of joint values """
         # check for illegal joint values
-        soll = check4limits(joints)
+        soll = self.check4limits(joints)
         # publish
         self.j0.publish(soll.j0)
         self.j1.publish(soll.j1)
@@ -41,17 +43,17 @@ class joint_publisher:
         self.j4.publish(soll.j4)
         self.j5.publish(soll.j5)
 
-def check4limits(joints = joints()):
-    """ check if desired joint state is reachable. No colission warning """
-    lim = hw_limits()
-    if (
-    lim.th0min <= joints.j0 <= lim.th0max and
-    lim.th1min <= joints.j1 <= lim.th1max and
-    lim.th2min <= joints.j2 <= lim.th2max and
-    lim.th3min <= joints.j3 <= lim.th3max and
-    lim.th4min <= joints.j4 <= lim.th4max and
-    lim.th5min <= joints.j5 <= lim.th5max ) :
-        return joints
-    else:
-        raise Exception('! desired joint states off hardware limits !')
+    def check4limits(self, joints = joints()):
+        """ check if desired joint state is reachable. No colission warning """
+        lim = hw_limits()
+        if (
+        lim.th0min <= joints.j0 <= lim.th0max and
+        lim.th1min <= joints.j1 <= lim.th1max and
+        lim.th2min <= joints.j2 <= lim.th2max and
+        lim.th3min <= joints.j3 <= lim.th3max and
+        lim.th4min <= joints.j4 <= lim.th4max and
+        lim.th5min <= joints.j5 <= lim.th5max ) :
+            return joints
+        else:
+            raise Exception('! desired joint states off hardware limits !')
 

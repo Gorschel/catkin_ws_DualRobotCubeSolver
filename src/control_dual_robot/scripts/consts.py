@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import math as m
+
 class hw_limits(object):
     """ Approximated hardware limits. Exceeding them will result in structural collision """
     __init = False
