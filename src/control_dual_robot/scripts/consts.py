@@ -8,7 +8,8 @@ from coord import Coord
 upw = 'upw'
 hor = 'hor'
 dwd = 'dwd'
-home = Coord(r=150, z=350, ort=hor)
+homepos = Coord(r=150, z=350, ort=hor)
+cubepos = Coord(x=130, y=-130, z=45, ort=dwd)
 
 class Hw_limits(object):
     """ Approximated hardware limits. Exceeding them will result in structural collision """

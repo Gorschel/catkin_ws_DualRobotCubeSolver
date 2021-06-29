@@ -8,14 +8,27 @@ from coord import *
 from consts import *
 from misc import cossatz
 
+
 class Robot(object):
-    """ class containing joint states for given robot id, inverse kinematics """
+    """class containing joint states for given robot id, inverse kinematics.
+
+    r = Robot(id)
+
+    methods & vars:
+        r.ik()
+        r.gripper.open()
+        r.gripper.close()
+        r.gripper.twist(n)
+        r.publish()
+        r.TCP
+        r.state
+    """
 
     def __init__(self, id = None):
         if id is None:
             raise Exception("no robot id given")
         else:
-            self.TCP     = home
+            self.TCP     = homepos
             self.state   = Joints()
             self.pub     = Joint_publisher(id)
             self.const   = Robot_structure()
@@ -27,32 +40,28 @@ class Robot(object):
     def ik(self):
         """ inverse kinematics for joints 0..3. publishes to robot """
 
-        # get orientation vector
+        # get orientation vector                        # TODO maybe rework for variable orientation angle
         d45 = self.const.d4 + self.const.d5
-        if   self.TCP.ort == 'hor': v3tcp = Coord(a = Point2D(r =  d45))
-        elif self.TCP.ort == 'upw': v3tcp = Coord(a = Point2D(z =  d45))
-        elif self.TCP.ort == 'dwd': v3tcp = Coord(a = Point2D(z = -d45))
+        if   self.TCP.ort == 'hor': P3TCP = Coord(r =  d45)
+        elif self.TCP.ort == 'upw': P3TCP = Coord(z =  d45)
+        elif self.TCP.ort == 'dwd': P3TCP = Coord(z = -d45)
         else: raise Exception("orientation not specified")
 
-        # get points
-        p1 = Point2D(z = self.const.d0 + self.const.d1)
-        p3 = self.TCP - v3tcp
+        # get points/vectors
+        P1 = Coord(z = self.const.d0 + self.const.d1)
+        P3 = self.TCP - P3TCP
+        P1P3 = Coord(P1, P3)
 
-        # get vectors
-        v01 = Coord(b = p1)
-        v03 = Coord(b = p3)
-        v13 = Coord(a = p1, b = p3)
-
-        # maybe check if point reachable
-        if abs(v13) == abs(v01) + abs(v03):
+        # check if point reachable
+        if abs(P1P3) == abs(P1) + abs(P3):
             raise Exception("! Point not reachable with given orientation !")
 
         #get angles [RAD]
-        alpha = cossatz(abs(v13), self.const.d2, self.const.d3)
-        beta = cossatz(self.const.d3, self.const.d2, abs(v13))
-        gamma = cossatz(abs(v13), self.const.d3, self.const.d2)
-        phi = cossatz(abs(v01), abs(v13), abs(v03))
-        if v03.r < 0.0: phi = 2*pi - phi # case for phi > pi (point close to base)
+        alpha = cossatz(abs(P1P3), self.const.d2, self.const.d3)
+        beta = cossatz(self.const.d3, self.const.d2, abs(P1P3))
+        gamma = cossatz(abs(P1P3), self.const.d3, self.const.d2)
+        phi = cossatz(abs(P1), abs(P1P3), abs(P3))
+        if P3.r < 0.0: phi = 2*pi - phi # case for phi > pi (point close to base)
 
         # get joint values [RAD]
         self.state.q0 = self.TCP.th # atan2(TCP.y, TCP.x)

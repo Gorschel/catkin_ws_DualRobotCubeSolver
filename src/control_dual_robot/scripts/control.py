@@ -3,44 +3,40 @@
 # license removed for brevity
 
 import rospy
-import time
 
-from consts import upw, hor, dwd
+from consts import upw, hor, dwd, homepos, cubepos
 from coord import Coord
 from robot_phantomx_reactor import Robot
+from robot_maneuvers import *
 
-
-def close(robot):
-    robot.gripper.close()
-    robot.publish()
-    wait()
-
-def open(robot):
-    robot.gripper.open()
-    robot.publish()
-    wait()
-
-def wait():
-    time.sleep(3)
+def pickup(robot):
+    moveP2P(robot, cubepos)
 
 
 def IKdemo():
-    import time
-    TCP0 = Coord(r=150, z=350, th=0, ort=hor)
-    TCP1 = Coord(x=150, y=-150, z=100, ort=dwd)
+    # get robot obj
     r0 = Robot(0)
     r1 = Robot(1)
-    r0.TCP = TCP0
-    r1.TCP = TCP1
-    r1.state.q4 = r1.state.q0
-    r1.publish()
+    # create/set points
+    P0 = Coord(r=150, z=350, ort=hor)
+    P1 = Coord(x=130, y=-130, z=100, ort=dwd)
+    r0.TCP = P0
+    r1.TCP = P1
+    # calc joint states
+    r0.ik()
+    r1.ik()
+    r1.state.q4 = r1.state.q0 # parallel zu y achse greifen
+
+    #moveP2P(r1, cubepos + Coord(z=100))
 
     while not rospy.is_shutdown():
-        open(r0)
-        
-
-
-
+        p3 = cubepos + Coord(z=75)
+        moveP2P(r1, p3)
+        pickup(r1)
+        grip(r1)
+        moveP2P(r1, p3)
+        drop(r1)
+        moveP2P(r1, homepos)
 
 
 def rosnode():
