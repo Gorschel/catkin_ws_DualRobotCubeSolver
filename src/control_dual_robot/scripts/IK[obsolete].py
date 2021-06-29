@@ -23,9 +23,9 @@ def inv_kinematics(orientation, TCP = Coord()):
 
     # get orientation vector
     d45 = const.d4 + const.d5
-    if   orientation == 'hor': v3tcp = Vector2D(a = Point2D(r =  d45))
-    elif orientation == 'upw': v3tcp = Vector2D(a = Point2D(z =  d45))
-    elif orientation == 'dwd': v3tcp = Vector2D(a = Point2D(z = -d45))
+    if   orientation == 'hor': v3tcp = Vector(a = Point2D(r =  d45))
+    elif orientation == 'upw': v3tcp = Vector(a = Point2D(z =  d45))
+    elif orientation == 'dwd': v3tcp = Vector(a = Point2D(z = -d45))
     else: raise Exception("orientation not specified")
 
     # get points
@@ -33,9 +33,9 @@ def inv_kinematics(orientation, TCP = Coord()):
     p3 = TCP - v3tcp
 
     # get vectors
-    v01 = Vector2D(b = p1)
-    v03 = Vector2D(b = p3)
-    v13 = Vector2D(p1, p3)
+    v01 = Vector(b = p1)
+    v03 = Vector(b = p3)
+    v13 = Vector(p1, p3)
 
     # maybe check if point reachable
     if abs(v13) == abs(v01) + abs(v03):

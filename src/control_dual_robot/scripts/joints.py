@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import rospy
-from std_msgs.msg import String, Float64
+from std_msgs.msg import Float64 #, String
 
-from consts import *
+from consts import Hw_limits
 
 
 class Joints(object):
-    """ todo. prepare to publish joint set """
+    """ set of joints """
     def __init__(self, th0 = None, th1 = None, th2 = None, th3 = None, th4 = None, th5 = None):
         self.q0 = th0 if th0 is not None else 0.0
         self.q1 = th1 if th1 is not None else 0.0
@@ -35,7 +35,7 @@ class Joint_publisher(object):
         self.j5 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/gripper_revolute_joint/command', Float64, queue_size=1)
 
     def publish(self, joints):
-        """ publishes set of joint values """
+        """ checks for hardware limits and publishes all joint values """
         # check for illegal joint values
         soll = self.check4limits(joints)
         # publish

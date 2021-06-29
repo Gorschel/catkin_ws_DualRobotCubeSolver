@@ -1,58 +1,58 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # license removed for brevity
 
 import rospy
-import math as m
+import time
 
+from consts import upw, hor, dwd
 from coord import Coord
-#from joints import Joint_publisher
-#from IK import inv_kinematics
 from robot_phantomx_reactor import Robot
 
-def BspProgROS():
-    rp0 = Joint_publisher(0)
-    rp1 = Joint_publisher(1)
 
-    TCP = Coord(r = 150, z=350, th=0)
+def close(robot):
+    robot.gripper.close()
+    robot.publish()
+    wait()
 
-    while not rospy.is_shutdown():
-        r0 = inv_kinematics('hor', TCP)
-        r1 = inv_kinematics('hor', TCP)
-        rp0.publish(r0)
-        rp1.publish(r1)
+def open(robot):
+    robot.gripper.open()
+    robot.publish()
+    wait()
 
-def ImprovedIK():
+def wait():
+    time.sleep(3)
+
+
+def IKdemo():
     import time
-    TCP = Coord(r=150, z=350, th=0, ort='hor')
+    TCP0 = Coord(r=150, z=350, th=0, ort=hor)
+    TCP1 = Coord(x=150, y=-150, z=100, ort=dwd)
     r0 = Robot(0)
     r1 = Robot(1)
-    r0.TCP = TCP
-    r1.TCP = TCP
+    r0.TCP = TCP0
+    r1.TCP = TCP1
+    r1.state.q4 = r1.state.q0
+    r1.publish()
 
     while not rospy.is_shutdown():
-        r0.ik()
-        r1.ik()
+        open(r0)
+        
 
-        r0.gripper.open()
-        r1.gripper.close()
-        time.sleep(2)
 
-        r0.gripper.close()
-        r1.gripper.open()
-        time.sleep(2)
+
+
+
+def rosnode():
+    rospy.init_node('control_dual_robots_manual', anonymous=True)
+    IKdemo()
+    rospy.spin()
+
 
 def debug():
     """ module testing etc"""
-    #c1 = coord(x = 200, z = 100)
-    #c1.cnv_cylindrical()
-    #ist = joints()
-    #soll = inv_kinematics('hor', ist, c1)
+    pass
 
-def rosnode():
-    rospy.init_node('control_dual_robots_debug', anonymous=True)
-    #BspProgROS()
-    ImprovedIK()
-    rospy.spin()
 
 if __name__ == '__main__':
     rosnode()

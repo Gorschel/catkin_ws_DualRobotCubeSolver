@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#import math as m
 from math import cos, sin, sqrt, atan2
 
 
@@ -10,8 +9,9 @@ class Coord(object):
     def __init__(self, x = None, y = None, z = None, r = None, th = None, ort = None):
         """  """
         if x is None and y is None: autocvt = self.cnv_catesian
-        if r is None and th is None: autocvt = self.cnv_cylindrical
-        if x is None and y is None and z is None and r is None and th is None: autocvt = None
+        elif r is None and th is None: autocvt = self.cnv_cylindrical
+        elif x is None and y is None and z is None and r is None and th is None: autocvt = None
+        if ort is None: raise Exception("no point orientation specified")
         self.x = x if x is not None else 0.0
         self.y = y if y is not None else 0.0
         self.z = z if z is not None else 0.0

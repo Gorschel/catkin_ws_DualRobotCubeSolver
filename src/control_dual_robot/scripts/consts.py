@@ -1,28 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import math as m
+from math import pi
 from misc import cossatz
+from coord import Coord
 
+upw = 'upw'
+hor = 'hor'
+dwd = 'dwd'
+home = Coord(r=150, z=350, ort=hor)
 
 class Hw_limits(object):
     """ Approximated hardware limits. Exceeding them will result in structural collision """
     __init = False
 
     def __init__(self):
-        self.th0min = -m.pi
-        self.th1min = -m.pi/2
-        self.th2min = -m.pi*3/4
-        self.th3min = -m.pi*5/9 #-100*m.pi/180
-        self.th4min = -m.pi
-        self.th5min = 0.0
+        self.th0min = -pi
+        self.th1min = -pi/2
+        self.th2min = -pi*3/4
+        self.th3min = -pi*5/9 #-100*pi/180
+        self.th4min = -pi
+        self.th5min = -pi/2
 
-        self.th0max = m.pi
-        self.th1max = m.pi/2
-        self.th2max = m.pi/2
-        self.th3max = m.pi*5/9  #100*m.pi/180
-        self.th4max = m.pi
-        self.th5max = m.pi/2
+        self.th0max = pi
+        self.th1max = pi/2
+        self.th2max = pi/2
+        self.th3max = pi*5/9  #100*pi/180
+        self.th4max = pi
+        self.th5max = pi/2
 
         self.__init = True
 
@@ -65,12 +70,13 @@ class Grip_structure(object):
 
     def __init__(self):
         self.cubesize = 56.0
-        self.servo_horn_radius = 8.0
-        self.open_gripper = 60.0
-        self.sponge_dist = 1.0
-        self.closed = cossatz(  a = self.servo_horn_radius,
-                                b = (self.cubesize - self.sponge_dist) / 2,
-                                c = (self.open_gripper - 2 * self.servo_horn_radius) / 2
+        self.servo_horn = 8.0
+        self.open_gripper = 64.0
+        self.sponge_dist = 3.0
+        self.sponge_squish = 0.0
+        self.closed = cossatz(  a = self.servo_horn,
+                                b = ((self.cubesize + 2 * self.sponge_dist) / 2 ) - self.sponge_squish,
+                                c = self.open_gripper / 2 - self.servo_horn
         )
         self.__init = True
 
