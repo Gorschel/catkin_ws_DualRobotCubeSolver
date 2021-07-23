@@ -5,14 +5,46 @@ from math import pi
 from misc import cossatz
 from coord import Coord
 
+
+# possible orientations
 upw = 'upw'
 hor = 'hor'
 dwd = 'dwd'
-homepos = Coord(r=150, z=350, ort=hor)
-cubepos = Coord(x=130, y=-130, z=45, ort=dwd)
 
-class Hw_limits(object):
-    """ Approximated hardware limits. Exceeding them will result in structural collision """
+speed = 70 # mm/s   # for timing purposes
+
+class Positions(object):
+    """constant world coordinates translated to each robot KOS"""
+    __init = False
+
+    def __init__(self, robot):
+        # global positions wrt r0
+        self.home = Coord(r = 180, z = 220, ort = hor)
+        r1_cube = Coord(x = 130, y = -130, z = 45, ort = dwd)
+        #r0_r1 = Coord(isvect = True, x = -6, y = 325)  # vector from global-origin/r0-origin to r1-origin
+        r0_r1 = Coord(isvect = True, x = 0, y = 360)  # vector from global-origin/r0-origin to r1-origin
+        r0_center = (r0_r1 / 2) + Coord(z = 220, ort = hor)
+
+        # transform points for robot id
+        if robot.id is 0:
+            self.cube       = r1_cube + r0_r1
+            self.cube_retr  = self.cube + Coord(z = 50)
+            self.center     = r0_center
+
+        elif robot.id is 1:
+            self.cube       = r1_cube
+            self.cube_retr  = self.cube + Coord(z = 50)
+            self.center     = r0_center - r0_r1
+
+        self.__init = True
+
+    def __setattr__(self, attr, value):
+        if self.__init: raise Exception('const value. may not be modified!')
+        else: super(Positions, self).__setattr__(attr, value)
+
+
+class HardwareLimits(object):
+    """Approximated hardware limits. Exceeding them would result in structural collision"""
     __init = False
 
     def __init__(self):
@@ -33,12 +65,12 @@ class Hw_limits(object):
         self.__init = True
 
     def __setattr__(self, attr, value):
-        if self.__init: raise Exception('value may not be modified!')
-        else: super(Hw_limits, self).__setattr__(attr, value)
+        if self.__init: raise Exception('const value. may not be modified!')
+        else: super(HardwareLimits, self).__setattr__(attr, value)
 
 
-class Robot_structure(object):
-    """ structural parameters. maybe get values from stl files for better precision """
+class RobotStructure(object):
+    """structural parameters. maybe get values from stl files for better precision"""
     __init = False
 
     def __init__(self):
@@ -57,16 +89,16 @@ class Robot_structure(object):
         self.d4 = 70
         self.d5 = 93
 
-        self.closed = Grip_structure().closed
+        self.closed = GripStructure().closed
 
         self.__init = True
 
     def __setattr__(self, attr, value):
-        if self.__init: raise Exception('value may not be modified!')
-        else: super(Robot_structure, self).__setattr__(attr, value)
+        if self.__init: raise Exception('const value. may not be modified!')
+        else: super(RobotStructure, self).__setattr__(attr, value)
 
-class Grip_structure(object):
-    """ structureal parameters of cube and gripper"""
+class GripStructure(object):
+    """structureal parameters of cube and gripper"""
     __init = False
 
     def __init__(self):
@@ -82,6 +114,6 @@ class Grip_structure(object):
         self.__init = True
 
     def __setattr__(self, attr, value):
-        if self.__init: raise Exception('value may not be modified!')
-        else: super(Grip_structure, self).__setattr__(attr, value)
+        if self.__init: raise Exception('const value. may not be modified!')
+        else: super(GripStructure, self).__setattr__(attr, value)
 

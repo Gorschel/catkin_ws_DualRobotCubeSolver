@@ -1,13 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from math import acos, pi
+import time
+from math import acos
+
+# convenience functions
 
 def cossatz(a, b, c):
     """ returns angle between triangle sides a and b """
     try:
-        angle = acos((pow(a,2)+pow(b,2)-pow(c,2))/(2*a*b))
+        return acos((pow(a,2)+pow(b,2)-pow(c,2))/(2*a*b))
     except ValueError:
         raise Exception("! desired point out of reach !")
-    return angle
+
+
+def wait(t = 2.5):
+    """ wait time in secs """
+    if isinstance(t, (float, int)):
+        time.sleep(t)
+    else: raise Exception("parameter not a number")
 

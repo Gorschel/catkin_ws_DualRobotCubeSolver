@@ -4,7 +4,7 @@
 import rospy
 from std_msgs.msg import Float64 #, String
 
-from consts import Hw_limits
+from consts import HardwareLimits
 
 
 class Joints(object):
@@ -24,7 +24,7 @@ class Joints(object):
         return "%s q0:%s q1:%s q2:%s q3:%s q4:%s q5:%s" % (self.__class__.__name__ , self.q0, self.q1, self.q2, self.q3, self.q4, self.q5)
 
 
-class Joint_publisher(object):
+class JointPublisher(object):
     """ creates set of controllable joint publishers """
     def __init__(self, id):
         self.j0 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_yaw_joint/command', Float64, queue_size=1)
@@ -49,7 +49,7 @@ class Joint_publisher(object):
 
     def check4limits(self, joints = Joints()):
         """ check if desired joint state is reachable. No colission warning """
-        lim = Hw_limits()
+        lim = HardwareLimits()
         if (
         lim.th0min <= joints.q0 <= lim.th0max and
         lim.th1min <= joints.q1 <= lim.th1max and
