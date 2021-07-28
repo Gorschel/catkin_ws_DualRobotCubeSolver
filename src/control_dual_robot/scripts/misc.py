@@ -14,7 +14,7 @@ def cossatz(a, b, c):
         raise Exception("! desired point out of reach !")
 
 
-def wait(t = 2.5):
+def wait(t = 3.0):
     """ wait time in secs """
     if isinstance(t, (float, int)):
         time.sleep(t)

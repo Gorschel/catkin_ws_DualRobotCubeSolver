@@ -29,12 +29,28 @@ class Robot(object):
             raise Exception("no robot id given")
         else:
             self.id      = id
+            self.hascube = False
             self.TCP     = Coord()
             self.state   = Joints()
             self.pub     = JointPublisher(id)
             self.const   = RobotStructure()
             self.pos     = Positions(self)
             self.gripper = Gripper(self)
+
+            # base rotation offset
+            if id is 0:
+                self.q0_offset = 1.8 * pi/180
+            elif id is 1:
+                self.q0_offset = -0.7 * pi/180
+
+            self.p2p(self.pos.home)
+
+            # hotfix: q0 not actuated
+            self.state.q0 = pi*5.0/180
+            self.publish()
+            self.state.q0 = 0.0
+            self.publish()
+
 
     def publish(self):
         self.pub.publish(self.state)
@@ -67,14 +83,32 @@ class Robot(object):
         if OP3.r < 0.0: phi = 2*pi - phi # case for phi > pi (point close to base)
 
         # get joint values [RAD]
-        self.state.q0 = self.TCP.th # atan2(TCP.y, TCP.x)
+        self.state.q0 = self.TCP.th + self.q0_offset           # atan2(TCP.y, TCP.x)
         self.state.q1 = pi - alpha - phi - self.const.psiz
         self.state.q2 = pi - beta - self.const.psir
-        if   self.TCP.ort == 'hor': self.state.q3 = -pi/2 - gamma + phi
-        elif self.TCP.ort == 'upw': self.state.q3 = -pi - gamma + phi
-        elif self.TCP.ort == 'dwd': self.state.q3 = - gamma + phi
+        if   self.TCP.ort == 'hor':
+            self.state.q3 = -pi/2 - gamma + phi
+        elif self.TCP.ort == 'upw':
+            self.state.q3 = -pi - gamma + phi
+        elif self.TCP.ort == 'dwd':
+            self.state.q3 = - gamma + phi
+            #self.state.q4 = self.state.q0 # align gripper rotation with base coordinate system
 
-        self.state.q4 = self.state.q0 # align gripper rotation with base coordinate system
+    def compensate(self, hascube, deg = None):
+        if self.TCP.ort is hor:
+            if deg is None:
+                if hascube: self.state.q3 -= pi*8.5/180
+                else:       self.state.q3 -= pi*4.5/180
+            else:
+                if hascube: self.state.q3 -= pi*deg/180
+                else:       self.state.q3 -= pi*deg/180
+        elif self.TCP.ort is dwd:
+            if deg is None:
+                if hascube: self.state.q3 -= pi*4.5/180
+                else:       self.state.q3 -= pi*4.5/180
+            else:
+                if hascube: self.state.q3 -= pi*deg/180
+                else:       self.state.q3 -= pi*deg/180
 
     def p2p(self, point):
         if not isinstance(point, Coord): raise Exception("no coordinate given")
@@ -83,13 +117,14 @@ class Robot(object):
 
         # move
         self.ik()
+        self.compensate(self.hascube)
         self.publish()
 
         # wait time depends on distance
         t = dist / speed
         wait(t)
 
-    def lin_p2p(self, point, steps = 10):
+    def lin_p2p(self, point, steps = 50):
         """moves from current pos to given point. higher stepsize, the higher the precision (but may be slower)"""
         if not isinstance(point, Coord):        raise Exception("no coordinate given")
         if not isinstance(steps, (int, float)): raise Exception("invalid stepsize")
@@ -111,62 +146,62 @@ class Robot(object):
             # goto new point and wait
             self.TCP = step
             self.ik()
+            self.compensate(self.hascube)
             self.publish()
             wait(dt)
 
     def pickup(self):
         """picks the cube from resting pos"""
-        print "picking up .."
+        #print "r{}: picking up ..".format(self.id)
+        #wait(1.0)
         self.p2p(self.pos.cube_retr)
         self.lin_p2p(self.pos.cube, 50)
+        wait(1.0)
         self.gripper.close()
         self.lin_p2p(self.pos.cube_retr, 50)
-        print "picked up."
+        print "r{}: picked up.".format(self.id)
 
     def putdown(self):
         """puts the cube to resting pos"""
-        print "putting down .."
+        #print "r{}: putting down ..".format(self.id)
+        #wait(1.0)
         self.p2p(self.pos.cube_retr)
         self.lin_p2p(self.pos.cube, 50)
+        #wait(1.0)
         self.gripper.open()
         self.lin_p2p(self.pos.cube_retr, 50)
-        print "put down."
+        print "r{}: put down.".format(self.id)
 
     def handover(ra, rb):
-        print "handing over .."
+        print "handing over r{} >> r{}".format(ra.id, rb.id)
+
         # retracted points
-        if ra.id is 0 and rb.id is 1:
-            ra_retr = ra.pos.center - Coord(y = 50, ort = hor)
-            rb_retr = rb.pos.center + Coord(y = 50, ort = hor)
+        ra_retr = ra.pos.center - Coord(x = 40, ort = hor)
+        rb_retr = rb.pos.center - Coord(x = 40, ort = hor)
 
-        elif ra.id is 1 and rb.id is 0:
-            ra_retr = ra.pos.center + Coord(y = 50, ort = hor)
-            rb_retr = rb.pos.center - Coord(y = 50, ort = hor)
-
-        # compensated points r0
-        pc0  = None
-        pcc0 = None
-        # compensated points r0
-        pc1  = None
-        pcc1 = None
-
-        # bring cube to center pos
+        print "    > r{}: bring cube to center pos".format(ra.id)
         ra.p2p(ra_retr)
-        ra.lin_p2p(ra.pos.center)
+        ra.gripper.twist(1)
+        ra.lin_p2p(ra.pos.center + Coord(z = 12))
 
-        # prepare rb-pos and grip cube
+        print "    > r{}: grip cube".format(rb.id)
         rb.p2p(rb_retr)
-        rb.gripper.twist(-1)
         rb.lin_p2p(rb.pos.center)
+        wait(1.0)
         rb.gripper.close()
 
+        # switch compensation
+        rb.lin_p2p(rb.pos.center + Coord(z = 12))
+        ra.lin_p2p(ra.pos.center)
+
+        print "    > r{}: let go and leave".format(ra.id)
         ra.gripper.open()
         ra.lin_p2p(ra_retr)
+        ra.gripper.twist(0)
 
-        # vlt überflüssig
+        print "    > done. r{} has cube. returning to home positions".format(rb)
         ra.p2p(ra.pos.home)
-        rb.gripper.twist(1)
-        print "handed over."
+        rb.p2p(rb.pos.home)
 
 
 class Gripper(object):
@@ -179,31 +214,47 @@ class Gripper(object):
         """ opens the gripper to 0 position. publishes to robot """
         self.robot.state.q5 = 0.0
         self.robot.publish()
-        wait()
+        self.robot.hascube = False
+        wait(1.0)
 
     def close(self):
         """ closes the gripper to const defined position. publishes to robot """
         self.robot.state.q5 = self.robot.const.closed
         self.robot.publish()
-        wait()
+        self.robot.hascube = True
+        wait(1.0)
 
     def twist(self, n):
         """
-        n * 90° increments with servo cable protection. publishes to robot.
+        roate wrist to n * 90° position.
 
-        gripper rotation is limited to ~140° in both directions -> only single and double turns possible -> need to check for desired cube turn before gripping 
+        gripper rotation is limited to ~140° in both directions -> only single and double turns possible -> need to check for desired cube turn before gripping
 
-        (R <-> 3Ri not possible!)
+        (R <=> 3Ri not possible!)
         """
-        if n in range(-2, 3):
 
-            if self.turns + n not in range(-1, 2):
-                n *= (-1) # change direction if cable twist limit reached [obsolete]
-
+        # move increment. indirect position n
+        """
+        if isinstance(n, int) and abs(n) <= 2:
+            if not abs(self.turns + n) <= 1:
+                if n is 2: raise Exception("out of bounds")
+                n *= (-1) # change direction if cable twist limit reached
             twist = n*(pi/2)
             self.turns += n
             self.robot.state.q4 += twist
             self.robot.publish()
-            wait() # wait time needs to depend on angle
-        else: raise Exception("no valid twist parameter")
+            wait(abs(n)*2.5) # wait time needs to depend on angle
+        else: raise TypeError('n has to be int [-1,1]')
+        """
+
+        # direct position n
+        bounds = range(-1,2)
+        if isinstance(n, int):
+            if n in bounds:
+                self.turns = n
+                self.robot.state.q4 = n*(pi/2)
+                self.robot.publish()
+                wait(abs(n)*2.5)
+            else: raise ValueError('n has to be in bounds [-1,1]')
+        else: raise TypeError('n not a integer')
 

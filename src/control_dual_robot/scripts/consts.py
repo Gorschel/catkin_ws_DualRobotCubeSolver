@@ -11,30 +11,34 @@ upw = 'upw'
 hor = 'hor'
 dwd = 'dwd'
 
-speed = 70 # mm/s   # for timing purposes
+speed = 60 # mm/s   # for timing purposes
 
 class Positions(object):
     """constant world coordinates translated to each robot KOS"""
     __init = False
 
     def __init__(self, robot):
-        # global positions wrt r0
-        self.home = Coord(r = 180, z = 220, ort = hor)
-        r1_cube = Coord(x = 130, y = -130, z = 45, ort = dwd)
-        #r0_r1 = Coord(isvect = True, x = -6, y = 325)  # vector from global-origin/r0-origin to r1-origin
-        r0_r1 = Coord(isvect = True, x = 0, y = 360)  # vector from global-origin/r0-origin to r1-origin
-        r0_center = (r0_r1 / 2) + Coord(z = 220, ort = hor)
+        self.home   = Coord(r = 160, z = 180, ort = hor)
 
+        r0_r1       = Coord(isvect = True, x = 465)             # vector from global-origin/r0-origin to r1-origin
+        self.center      = (r0_r1 / 2) + Coord(z = 180, x = 4, ort = hor)
+        self.cube        = (r0_r1 / 2) + Coord(z = 46, x = -3, ort = dwd)
+        self.cube_retr   = self.cube + Coord(z = 50)
+
+        # if robots not facing fronts and cubepos symmetrical
+
+        """
         # transform points for robot id
         if robot.id is 0:
-            self.cube       = r1_cube + r0_r1
-            self.cube_retr  = self.cube + Coord(z = 50)
-            self.center     = r0_center
+            self.cube       = cube      + Coord(y = 1)
+            self.cube_retr  = cube_retr + Coord(y = 1)
+            self.center     = center    + Coord(y = 1)
 
         elif robot.id is 1:
-            self.cube       = r1_cube
-            self.cube_retr  = self.cube + Coord(z = 50)
-            self.center     = r0_center - r0_r1
+            self.cube       = cube      + Coord(y = 1)
+            self.cube_retr  = cube_retr + Coord(y = 1)
+            self.center     = r0_center# - r0_r1
+        """
 
         self.__init = True
 

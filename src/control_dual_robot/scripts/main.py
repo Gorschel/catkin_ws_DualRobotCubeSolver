@@ -4,43 +4,35 @@
 
 import rospy
 
-from consts import *
-from coord import Coord
 from robot import Robot
+from misc import wait
 
 
-def ik_demo():
-    # get robot objs
+def demo():
+    print 'init'
     r0 = Robot(0)
     r1 = Robot(1)
-    """
-    # debug points
-    p0 = Coord(r=150, z=450, ort=upw)
-    p1 = Coord(x=130, y=-130, z=100, ort=dwd)
-    r0.p2p(p0)
-    """
-    # goto home
-    #r0.p2p(r0.pos.home)
-    #r1.p2p(r1.pos.home)
-
-    """
-    # wrist rotate an basis anpassen bzw. parallel zu y achse greifen
-    #r1.state.q4 = r1.state.q0
-    """
 
     while not rospy.is_shutdown():
-
+        print 'start cycle'
         r0.p2p(r0.pos.home)
         r1.p2p(r1.pos.home)
 
-        # transfer coords working?
-        #r1.pickup()
+        # transfer cube multiple times
+        r0.pickup()
+        r0.handover(r1)
         #r1.handover(r0)
-        #r0.putdown()
+        #r0.handover(r1)
+        r1.putdown()
+
+        r0.p2p(r0.pos.home)
+        r1.p2p(r1.pos.home)
+        wait(5.0)
+        print 'end cycle'
 
 def rosnode():
     rospy.init_node('control_dual_robots_manual', anonymous=True)
-    ik_demo()
+    demo()
     rospy.spin()
 
 
