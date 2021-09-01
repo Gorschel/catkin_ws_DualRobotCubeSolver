@@ -8,39 +8,70 @@ from robot import Robot
 from misc import wait
 
 
+
 def demo():
-    print 'init'
+    print 'init demo'
     r0 = Robot(0)
     r1 = Robot(1)
 
     while not rospy.is_shutdown():
         print 'start cycle'
-        r0.p2p(r0.pos.home)
-        r1.p2p(r1.pos.home)
+        r0.home() #p2p(r0.pos.home)
+        r1.home() #p2p(r1.pos.home)
+        wait(1.0)
 
-        # transfer cube multiple times
+        #"""
         r0.pickup()
         r0.handover(r1)
-        #r1.handover(r0)
-        #r0.handover(r1)
+        r0.turn(r1,'U',1)
         r1.putdown()
+        #"""
 
-        r0.p2p(r0.pos.home)
-        r1.p2p(r1.pos.home)
-        wait(5.0)
         print 'end cycle'
+        wait(2.0)
 
-def rosnode():
-    rospy.init_node('control_dual_robots_manual', anonymous=True)
-    demo()
+def control():
+    rospy.init_node('control_dual_robots_manual')
+    print 'init control'
+    r0 = Robot(0)
+    r1 = Robot(1)
+
+    # () wait for start event
+
+    # get cube
+    r0.pickup()
+
+    # make images
+
+
+    # start detection
+
+
+    # get solStr
+
+
+    #parse_solStr()
+
+
+    #plan_movements()
+
+
+    #apply_solution()
+
+
+    # put down cube
+    if r0.hascube:  r0.putdown()
+    else:           r1.putdown()
+
     rospy.spin()
 
 
 def debug():
-    """ module testing etc"""
-    pass
+    rospy.init_node('debug')
+    demo()
+    rospy.spin()
 
 
 if __name__ == '__main__':
-    rosnode()
-    #debug()
+    #control()
+    debug()

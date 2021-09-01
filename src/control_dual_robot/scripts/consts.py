@@ -11,7 +11,7 @@ upw = 'upw'
 hor = 'hor'
 dwd = 'dwd'
 
-speed = 60 # mm/s   # for timing purposes
+speed = 50 # mm/s   # for timing purposes
 
 class Positions(object):
     """constant world coordinates translated to each robot KOS"""
@@ -19,14 +19,35 @@ class Positions(object):
 
     def __init__(self, robot):
         self.home   = Coord(r = 160, z = 180, ort = hor)
+        r0_r1       = Coord(isvect = True, x = 463)             # vector from global-origin/r0-origin to r1-origin
 
-        r0_r1       = Coord(isvect = True, x = 465)             # vector from global-origin/r0-origin to r1-origin
-        self.center      = (r0_r1 / 2) + Coord(z = 180, x = 4, ort = hor)
-        self.cube        = (r0_r1 / 2) + Coord(z = 46, x = -3, ort = dwd)
-        self.cube_retr   = self.cube + Coord(z = 50)
+        if robot.id is 0:
+            self.center      = (r0_r1 / 2) + Coord(z = 180, x = -3, ort = hor)
+            self.cube        = (r0_r1 / 2) + Coord(z = 46, x = -7, ort = dwd)
+            self.cube_retr   = self.cube + Coord(z = 50)
 
-        # if robots not facing fronts and cubepos symmetrical
+        if robot.id is 1:
+            self.center      = (r0_r1 / 2) + Coord(z = 180, x = -3, ort = hor)
+            self.cube        = (r0_r1 / 2) + Coord(z = 46, x = -7, ort = dwd)
+            self.cube_retr   = self.cube + Coord(z = 50)
 
+        # holding pos
+        self.D_hold = Coord(x = 180, y = 0, z = 420, ort = hor)
+        self.F_hold = self.center
+        self.U_hold = Coord(x = 300, y = 0, z = 70, ort = hor)
+
+        # turning pos
+        self.D_turn = Coord(x = 250, y = 0, z = 400, ort = dwd)
+        self.F_turn = self.center - Coord(x = 18.5)
+        self.U_turn = Coord(x = 158, y = 0, z = 90, ort = dwd)
+
+        # retracted turning pos
+        self.D_retr = self.D_turn - Coord(x = 50)
+        self.F_retr = self.F_turn - Coord(x = 50)
+        self.U_retr = self.U_turn + Coord(z = 25)
+
+
+        # uncomment if robots not facing fronts and cubepos symmetrical:
         """
         # transform points for robot id
         if robot.id is 0:
@@ -38,7 +59,7 @@ class Positions(object):
             self.cube       = cube      + Coord(y = 1)
             self.cube_retr  = cube_retr + Coord(y = 1)
             self.center     = r0_center# - r0_r1
-        """
+        #"""
 
         self.__init = True
 
@@ -78,6 +99,7 @@ class RobotStructure(object):
     __init = False
 
     def __init__(self):
+        """
         # base height
         self.d0 = 12.5 + 78
         self.d1 = 26
@@ -92,6 +114,17 @@ class RobotStructure(object):
         # wrist length
         self.d4 = 70
         self.d5 = 93
+        """
+
+        self.d01 = 104.5 + 8.0
+        self.d2 = 150
+        self.d2z = 145.146
+        self.d2r = 37.851
+        self.psiz = 0.255092
+        self.psir = 1.3157
+        self.d3 = 144.471
+        self.d45 = 115.5
+        self.dgrip = 45.175
 
         self.closed = GripStructure().closed
 
@@ -100,6 +133,7 @@ class RobotStructure(object):
     def __setattr__(self, attr, value):
         if self.__init: raise Exception('const value. may not be modified!')
         else: super(RobotStructure, self).__setattr__(attr, value)
+
 
 class GripStructure(object):
     """structureal parameters of cube and gripper"""
