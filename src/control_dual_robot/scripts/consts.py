@@ -19,11 +19,11 @@ class Positions(object):
 
     def __init__(self, robot):
         self.home   = Coord(r = 160, z = 180, ort = hor)
-        r0_r1       = Coord(isvect = True, x = 463)             # vector from global-origin/r0-origin to r1-origin
+        r0_r1       = Coord(isvect = True, x = 465)             # vector from global-origin/r0-origin to r1-origin
 
         if robot.id is 0:
             self.center      = (r0_r1 / 2) + Coord(z = 180, x = -3, ort = hor)
-            self.cube        = (r0_r1 / 2) + Coord(z = 46, x = -7, ort = dwd)
+            self.cube        = (r0_r1 / 2) + Coord(z = 46, x = -6, ort = dwd)
             self.cube_retr   = self.cube + Coord(z = 50)
 
         if robot.id is 1:

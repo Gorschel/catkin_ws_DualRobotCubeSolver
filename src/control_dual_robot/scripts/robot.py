@@ -37,14 +37,14 @@ class Robot(object):
             self.pos     = Positions(self)
             self.gripper = Gripper(self)
 
-            """
+
             # base rotation offset
             if id is 0:
                 self.q0_offset = 1.8 * pi/180
             elif id is 1:
                 self.q0_offset = -0.7 * pi/180
 
-
+            """
             self.p2p(self.pos.home)
 
             # hotfix: q0 not actuated
@@ -85,7 +85,7 @@ class Robot(object):
         if OP3.r < 0.0: phi = 2*pi - phi # case for phi > pi (point close to base)
 
         # get joint values [RAD]
-        self.state.q0 = self.TCP.th #+ self.q0_offset           # atan2(TCP.y, TCP.x)
+        self.state.q0 = self.TCP.th + self.q0_offset           # atan2(TCP.y, TCP.x)
         self.state.q1 = pi - alpha - phi - self.const.psiz
         self.state.q2 = pi - beta - self.const.psir
         if   self.TCP.ort == 'hor':
@@ -99,10 +99,15 @@ class Robot(object):
     def home(self):
         """moves to home position. drops gripped objects"""
         self.state.q0 = 0.0
+        self.publish()
         self.state.q1 = -pi/2
+        self.publish()
         self.state.q2 = 0.0
+        self.publish()
         self.state.q3 =  pi/2
+        self.publish()
         self.state.q4 = 0.0
+        self.publish()
         self.state.q5 = 0.0
         self.publish()
 
@@ -209,7 +214,7 @@ class Robot(object):
 
         print "    > r{}: grip cube".format(rb.id)
         rb.p2p(rb_center_retr)
-        wait(1.5)
+        wait(2.5)
         rb.lin_p2p(rb_center + Coord(x=4, z=1))
         wait(1.0)
         rb.gripper.close()
@@ -227,7 +232,7 @@ class Robot(object):
         ra.home()
         rb.p2p(rb.pos.home)
 
-    def turn(ra, rb, face, turns):
+    def turn(rb, ra, face, turns):
         """rb brings cube to one of 3 maneuver positions and ra turns the face
 
         Args:

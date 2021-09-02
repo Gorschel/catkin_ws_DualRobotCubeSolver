@@ -15,15 +15,27 @@ def demo():
     r1 = Robot(1)
 
     while not rospy.is_shutdown():
-        print 'start cycle'
         r0.home() #p2p(r0.pos.home)
         r1.home() #p2p(r1.pos.home)
-        wait(1.0)
+        print "3"
+        wait(2.0)
+        r0.home() #p2p(r0.pos.home)
+        r1.home() #p2p(r1.pos.home)
+        print "2"
+        wait(2.0)
+        r0.home() #p2p(r0.pos.home)
+        r1.home() #p2p(r1.pos.home)
+        print "1"
+        wait(2.0)
+        print 'start cycle'
 
         #"""
         r0.pickup()
         r0.handover(r1)
-        r0.turn(r1,'U',1)
+        r1.turn(r0,'U',1)
+        r1.handover(r0)
+        r0.turn(r1, 'U', 2)
+        r0.handover(r1)
         r1.putdown()
         #"""
 
