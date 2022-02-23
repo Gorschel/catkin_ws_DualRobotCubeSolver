@@ -17,7 +17,7 @@ class Coord(object):
 
     def __init__(self, isvect = False, a = None, b = None, x = None, y = None, z = None, r = None, th = None, ort = None):
         """ create vector or point """
-        __isvect = isvect
+        #__isvect = isvect
 
         # vector from point a to b
         if isinstance(a, Coord) and isinstance(b, Coord) and all(var is None for var in [x, y, z, r, th]):

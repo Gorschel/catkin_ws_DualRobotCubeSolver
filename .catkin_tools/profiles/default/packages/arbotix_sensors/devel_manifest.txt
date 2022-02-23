@@ -1,6 +1,6 @@
 arbotix_ros/arbotix_sensors
-/home/georg/catkin_ws/devel/.private/arbotix_sensors/cmake.lock /home/georg/catkin_ws/devel/./cmake.lock
-/home/georg/catkin_ws/devel/.private/arbotix_sensors/lib/python2.7/dist-packages/arbotix_sensors/__init__.py /home/georg/catkin_ws/devel/lib/python2.7/dist-packages/arbotix_sensors/__init__.py
-/home/georg/catkin_ws/devel/.private/arbotix_sensors/lib/pkgconfig/arbotix_sensors.pc /home/georg/catkin_ws/devel/lib/pkgconfig/arbotix_sensors.pc
-/home/georg/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake
-/home/georg/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake
+/home/student/catkin_ws/devel/.private/arbotix_sensors/cmake.lock /home/student/catkin_ws/devel/./cmake.lock
+/home/student/catkin_ws/devel/.private/arbotix_sensors/lib/pkgconfig/arbotix_sensors.pc /home/student/catkin_ws/devel/lib/pkgconfig/arbotix_sensors.pc
+/home/student/catkin_ws/devel/.private/arbotix_sensors/lib/python2.7/dist-packages/arbotix_sensors/__init__.py /home/student/catkin_ws/devel/lib/python2.7/dist-packages/arbotix_sensors/__init__.py
+/home/student/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake /home/student/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake
+/home/student/catkin_ws/devel/.private/arbotix_sensors/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake /home/student/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake

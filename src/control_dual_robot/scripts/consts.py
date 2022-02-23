@@ -144,7 +144,7 @@ class GripStructure(object):
         self.servo_horn = 8.0
         self.open_gripper = 64.0
         self.sponge_dist = 3.0
-        self.sponge_squish = 0.0
+        self.sponge_squish = 0.5
         self.closed = cossatz(  a = self.servo_horn,
                                 b = ((self.cubesize + 2 * self.sponge_dist) / 2 ) - self.sponge_squish,
                                 c = self.open_gripper / 2 - self.servo_horn

@@ -28,16 +28,18 @@ def demo():
         print "1"
         wait(2.0)
         print 'start cycle'
+        ## init vorbei
 
-        #"""
+
         r0.pickup()
         r0.handover(r1)
-        r1.turn(r0,'U',1)
+        r1.turn(r0,'F',1)
         r1.handover(r0)
         r0.turn(r1, 'U', 2)
         r0.handover(r1)
         r1.putdown()
-        #"""
+        
+        
 
         print 'end cycle'
         wait(2.0)
@@ -50,25 +52,7 @@ def control():
 
     # () wait for start event
 
-    # get cube
     r0.pickup()
-
-    # make images
-
-
-    # start detection
-
-
-    # get solStr
-
-
-    #parse_solStr()
-
-
-    #plan_movements()
-
-
-    #apply_solution()
 
 
     # put down cube

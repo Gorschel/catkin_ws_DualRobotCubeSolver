@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from math import pi, atan2, acos, sin, cos, sqrt, ceil
-
+from copy import copy
 from joints import *
 from coord import *
 from consts import *
@@ -150,6 +150,8 @@ class Robot(object):
         # get vect & dist
         v, dist = self.TCP.distto(point)
         if dist > 0:
+            
+            """
             p0 = self.TCP
             vn = v / dist
             ds = dist / steps
@@ -168,6 +170,30 @@ class Robot(object):
                 self.compensate(self.hascube, comp)
                 self.publish()
                 wait(dt)
+            """
+            
+            s0 = copy(self.state)
+            self.TCP = point
+            self.ik()
+            angles = copy(self.state - s0)
+            
+            #da = angles / steps
+
+            # get timing
+            t = dist / speed
+            dt = t / steps
+
+            # step loop
+            for n in range(1, steps + 1):
+                # get new joint state
+                teiler = float(n)/float(steps)
+                sn = angles * teiler
+                # goto new point and wait
+                self.state = copy(s0 + sn)
+                self.compensate(self.hascube, comp)
+                self.publish()
+                wait(dt)
+            
 
     def pickup(self):
         """picks the cube from resting pos"""

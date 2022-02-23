@@ -22,7 +22,45 @@ class Joints(object):
 
     def __str__(self):
         return "%s q0:%s q1:%s q2:%s q3:%s q4:%s q5:%s" % (self.__class__.__name__ , self.q0, self.q1, self.q2, self.q3, self.q4, self.q5)
-
+    
+    def __sub__(self, other):
+        q0 = self.q0 - other.q0
+        q1 = self.q1 - other.q1
+        q2 = self.q2 - other.q2
+        q3 = self.q3 - other.q3
+        q4 = self.q4 - other.q4 
+        q5 = self.q5 - other.q5
+        return Joints(q0,q1,q2,q3,q4,q5)
+    
+    def __add__(self, other):
+        """overrides left!"""
+        q0 = self.q0 + other.q0
+        q1 = self.q1 + other.q1
+        q2 = self.q2 + other.q2
+        q3 = self.q3 + other.q3
+        q4 = self.q4 + other.q4 
+        q5 = self.q5 + other.q5
+        return Joints(q0,q1,q2,q3,q4,q5)
+    
+    def __div__(self, other):
+        if other >0:
+            q0 = self.q0 / other
+            q1 = self.q1 / other
+            q2 = self.q2 / other
+            q3 = self.q3 / other
+            q4 = self.q4 / other
+            q5 = self.q5 / other
+            return Joints(q0,q1,q2,q3,q4,q5)
+        else: raise Exception("durch 0 geteit")
+        
+    def __mul__(self, other):
+        q0 = self.q0 * other
+        q1 = self.q1 * other
+        q2 = self.q2 * other
+        q3 = self.q3 * other
+        q4 = self.q4 * other
+        q5 = self.q5 * other
+        return Joints(q0,q1,q2,q3,q4,q5)
 
 class JointPublisher(object):
     """ creates set of controllable joint publishers """

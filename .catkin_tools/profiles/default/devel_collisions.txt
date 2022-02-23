@@ -1,2 +1,3 @@
+/home/student/catkin_ws/devel/./cmake.lock 97
 /home/georg/catkin_ws/devel/./cmake.lock 443
 /home/georg/catkin_ws/devel/bin/cmake.lock 26
