@@ -9,6 +9,6 @@
     <include file="$(find control_dual_robot)/launch/solver.launch"/>
 
     <!--launch control node-->
-    <node name="control" pkg="control_dual_robot" type="control.py" output="screen"/>
+    <node name="control" pkg="control_dual_robot" type="main.py" output="screen"/>
 
 </launch>

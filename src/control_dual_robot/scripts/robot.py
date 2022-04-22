@@ -111,21 +111,31 @@ class Robot(object):
         self.state.q5 = 0.0
         self.publish()
 
-    def compensate(self, hascube, deg = None):
+    def compensate(self, deg = None):
         """adds offset to wrist angle to compensate arm/cube weight. depends on hascube. optional: deg > 0
 
         only updating joint values. no publish"""
         #"""
         if deg is None:
             if self.TCP.ort is hor:
-                if hascube: self.state.q3 -= pi*8.5/180
+                if self.hascube: self.state.q3 -= pi*8.5/180
                 else:       self.state.q3 -= pi*4.5/180
             elif self.TCP.ort is dwd:
-                if hascube: self.state.q3 -= pi*4.5/180
+                if self.hascube: self.state.q3 -= pi*4.5/180
                 else:       self.state.q3 -= pi*4.5/180
         elif deg > 0:
             self.state.q3 -= deg*pi/180
         #"""
+        
+    def angular(self, j):
+        print "r{} moving to angle pos: {}".format(self.id, j)
+        self.state.q0 = j.q0
+        self.state.q1 = j.q1
+        self.state.q2 = j.q2
+        self.state.q3 = j.q3
+        self.state.q4 = j.q4
+        self.publish()
+        wait(4)
 
     def p2p(self, point, comp = None):
         if not isinstance(point, Coord): raise Exception("no coordinate given")
@@ -135,7 +145,7 @@ class Robot(object):
 
             # move
             self.ik()
-            self.compensate(self.hascube, comp)
+            self.compensate(comp)
             self.publish()
 
             # wait time depends on distance
@@ -190,18 +200,18 @@ class Robot(object):
                 sn = angles * teiler
                 # goto new point and wait
                 self.state = copy(s0 + sn)
-                self.compensate(self.hascube, comp)
+                self.compensate(comp)
                 self.publish()
                 wait(dt)
-            
 
     def pickup(self):
         """picks the cube from resting pos"""
         #print "r{}: picking up ..".format(self.id)
-        #wait(1.0)
+        
         self.p2p(self.pos.cube_retr)
+        wait(3.0)
         self.lin_p2p(self.pos.cube, 50)
-        wait(1.0)
+        wait(4.5)
         self.gripper.close()
         self.lin_p2p(self.pos.cube_retr, 50)
         print "r{}: picked up.".format(self.id)
@@ -242,10 +252,10 @@ class Robot(object):
         rb.p2p(rb_center_retr)
         wait(2.5)
         rb.lin_p2p(rb_center + Coord(x=4, z=1))
-        wait(1.0)
+        wait(2.5)
         rb.gripper.close()
 
-        # switch compensation
+        # TODO switch compensation
         #rb.lin_p2p(rb.pos.center)# + Coord(z = comp))
         #ra.lin_p2p(ra.pos.center)
 
@@ -257,6 +267,62 @@ class Robot(object):
         print "    > done. r{} has cube. returning to home positions".format(rb.id)
         ra.home()
         rb.p2p(rb.pos.home)
+    
+    def flip(ra, rb):
+        """ derived from handover. flip U to D side
+        """
+        print "flipping cube on robot r{}".format(ra.id)
+
+        comp = 8.0
+
+        # retracted points
+        if ra.id is 0:
+            ra_center = ra.pos.center + Coord(z = comp)
+            rb_center = rb.pos.center
+        elif ra.id is 1:
+            ra_center = ra.pos.center
+            rb_center = rb.pos.center + Coord(z = comp)
+
+        ra_center_retr = ra.pos.center - Coord(x = 50, ort = hor)
+        rb_center_retr = rb.pos.center - Coord(x = 40, ort = hor)
+
+        print "    > r{}: bring cube to center pos".format(ra.id)
+        ra.p2p(ra_center_retr)
+        ra.gripper.twist(1)
+        ra.lin_p2p(ra_center, comp = 9.5)# + Coord(z = comp))
+        rb.home()
+
+        print "    > r{}: grip cube".format(rb.id)
+        rb.p2p(rb_center_retr)
+        wait(2.5)
+        rb.lin_p2p(rb_center + Coord(x=4, z=1))
+        wait(2.5)
+        rb.gripper.close()
+        
+        print "    > switching compensation".format(ra.id)
+        rb.hascube = True
+        rb.compensate(9.0)
+        ra.hascube = False
+        ra.compensate(-8.0)
+        
+        print "    > r{}: fliping gripper".format(ra.id)
+        ra.gripper.open()
+        ra.lin_p2p(ra_center_retr)
+        
+        ra.gripper.twist(-1)
+        wait(2.5)
+        ra.lin_p2p(ra_center + Coord(x=4, z=1))#, comp = 9.5)
+        wait(1.0)
+        ra.gripper.close()
+        wait(2)
+        
+        print "    > r{} leaving".format(rb.id)
+        rb.gripper.open()
+        rb.lin_p2p(rb_center_retr)
+
+        print "    > done. r{} has cube. returning to home positions".format(ra.id)
+        rb.home()
+        ra.p2p(rb.pos.home)
 
     def turn(rb, ra, face, turns):
         """rb brings cube to one of 3 maneuver positions and ra turns the face

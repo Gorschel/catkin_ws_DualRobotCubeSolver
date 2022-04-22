@@ -84,7 +84,6 @@ class JointPublisher(object):
         self.j4.publish(soll.q4)
         self.j5.publish(soll.q5)
 
-
     def check4limits(self, joints = Joints()):
         """ check if desired joint state is reachable. No colission warning """
         lim = HardwareLimits()

@@ -45,6 +45,11 @@ class Positions(object):
         self.D_retr = self.D_turn - Coord(x = 50)
         self.F_retr = self.F_turn - Coord(x = 50)
         self.U_retr = self.U_turn + Coord(z = 25)
+        
+        # scanning poses (joint values)
+        
+        
+        #self.scan_c = Joints(0.0, -pi/4, pi/4, 0.0, 0.0, 0.0)  # ! TODO: 2x übergabe (gebender muss vertikal halten) , danach 
 
 
         # uncomment if robots not facing fronts and cubepos symmetrical:
@@ -140,15 +145,14 @@ class GripStructure(object):
     __init = False
 
     def __init__(self):
-        self.cubesize = 56.0
-        self.servo_horn = 8.0
-        self.open_gripper = 64.0
-        self.sponge_dist = 3.0
-        self.sponge_squish = 0.5
-        self.closed = cossatz(  a = self.servo_horn,
-                                b = ((self.cubesize + 2 * self.sponge_dist) / 2 ) - self.sponge_squish,
-                                c = self.open_gripper / 2 - self.servo_horn
-        )
+        #self.cubesize = 56.0
+        #self.servo_horn_radius = 8.0
+        #self.gripper_arm_length = 29.0
+        #self.sponge_dist = 3.0
+        #self.sponge_squish = 0.0
+        self.closed = 46*pi/180 #cossatz(  a = self.servo_horn_radius,
+                                #b = 32,#(self.cubesize/2)+(self.sponge_dist - self.sponge_squish),
+                                #c = self.gripper_arm_length )
         self.__init = True
 
     def __setattr__(self, attr, value):

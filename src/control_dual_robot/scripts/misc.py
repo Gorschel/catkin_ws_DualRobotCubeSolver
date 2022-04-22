@@ -9,7 +9,7 @@ from math import acos
 def cossatz(a, b, c):
     """ returns angle between triangle sides a and b """
     try:
-        return acos((pow(a,2)+pow(b,2)-pow(c,2))/(2*a*b))
+        return acos((c**2 - b**2 - a**2)/(-2.0 * a * b))
     except ValueError:
         raise Exception("! desired point out of reach !")
 
@@ -19,4 +19,3 @@ def wait(t = 3.0):
     if isinstance(t, (float, int)):
         time.sleep(t)
     else: raise Exception("parameter not a number")
-
