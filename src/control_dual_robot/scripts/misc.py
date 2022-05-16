@@ -6,6 +6,7 @@ from math import acos
 
 # convenience functions
 
+
 def cossatz(a, b, c):
     """ returns angle between triangle sides a and b """
     try:
