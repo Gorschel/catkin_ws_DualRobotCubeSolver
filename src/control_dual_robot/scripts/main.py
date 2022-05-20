@@ -143,6 +143,8 @@ class Main(object):
         print "Taking image of {} Face".format(face)
         rospack = rospkg.RosPack()
         cam = cv2.VideoCapture(0)
+
+        #cam.set(cv2.CAP_PROP_EXPOSURE, 0.1)
         if cam.isOpened():
             print "    > cam open"
             ret, frame = cam.read()
@@ -169,7 +171,7 @@ class Main(object):
                 raise Exception("no image from camera received")
             cam.release()
         else:
-            raise Exception("could not open camera")
+            print("! could not open camera")
 
 
 def debug():
