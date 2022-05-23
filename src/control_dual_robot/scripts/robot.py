@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from math import pi, atan2, acos, sin, cos, sqrt, ceil
 from copy import copy
-from joints import *
-from coord import *
+from joints import Joints, JointPublisher
 from consts import *
 from misc import *
 
@@ -25,6 +23,7 @@ class Robot(object):
     """
 
     def __init__(self, id=None):
+
         if id is None:
             raise Exception("no robot id given")
         else:
@@ -115,9 +114,12 @@ class Robot(object):
         self.publish()
 
     def compensate(self, deg=None):
-        """adds offset to wrist angle to compensate arm/cube weight. depends on hascube. optional: deg > 0
-
-        only updating joint values. no publish"""
+        """
+            adds offset to wrist angle to compensate arm/cube weight. depends on hascube. optional: deg > 0
+            deg (float): compenation angle
+            joint (Joint.ax): specific axis to manipulate
+            only updating joint values. no publish
+        """
         # """
         if deg is None:
             if self.TCP.ort is hor:
@@ -132,7 +134,6 @@ class Robot(object):
                     self.state.q3 -= pi * 4.5 / 180
         elif deg > 0:
             self.state.q3 -= deg * pi / 180
-        # """
 
     def angular(self, j):
         print "r{} moving to angle pos: {}".format(self.id, j)
@@ -157,7 +158,7 @@ class Robot(object):
             t = dist / speed
             wait(t)
 
-    def lin_p2p(self, point, steps=50, comp=None):
+    def sync_p2p(self, point, steps=50, comp=None):
         """moves from current pos to given point. higher stepsize, the higher the precision (but may be slower)"""
         if not isinstance(point, Coord):        raise Exception("no position to go to")
         if not isinstance(steps, (int, float)): raise Exception("invalid step value")
@@ -180,7 +181,8 @@ class Robot(object):
                 sn = angles * progress_norm
                 # goto new point and wait
                 self.state = copy(s0 + sn)
-                self.compensate(comp)
+                if n > 1:
+                    self.compensate(comp)
                 self.publish()
                 wait(dt)
 
@@ -189,11 +191,10 @@ class Robot(object):
         # print "r{}: picking up ..".format(self.id)
 
         self.p2p(self.pos.cube_retr)
-        wait(1.5)
-        self.lin_p2p(self.pos.cube, 50)
-        wait(1.5)
+        self.sync_p2p(self.pos.cube, 50)
+        wait(0.5)
         self.gripper.close()
-        self.lin_p2p(self.pos.cube_retr, 50)
+        self.sync_p2p(self.pos.cube_retr, 50)
         print "r{}: picked up.".format(self.id)
 
     def putdown(self):
@@ -201,10 +202,10 @@ class Robot(object):
         # print "r{}: putting down ..".format(self.id)
         # wait(1.0)
         self.p2p(self.pos.cube_retr)
-        self.lin_p2p(self.pos.cube, 50)
+        self.sync_p2p(self.pos.cube, 50)
         # wait(1.0)
         self.gripper.open()
-        self.lin_p2p(self.pos.cube_retr, 50)
+        self.sync_p2p(self.pos.cube_retr, 50)
         print "r{}: put down.".format(self.id)
 
     def handover(ra, rb):
@@ -212,13 +213,16 @@ class Robot(object):
 
         comp = 8.5
 
+        ra_center = ra.pos.center
+        rb_center = rb.pos.center
+
         # retracted points
         if ra.id is 0:
-            ra_center = ra.pos.center + Coord(z=comp)
-            rb_center = rb.pos.center
+            ra_center += Coord(z=comp)
+            # rb_center = rb.pos.center
         elif ra.id is 1:
-            ra_center = ra.pos.center
-            rb_center = rb.pos.center + Coord(z=3)
+            # ra_center = ra.pos.center
+            rb_center += Coord(z=3)
 
         ra_center_retr = ra.pos.center - Coord(x=40, ort=hor)
         rb_center_retr = rb.pos.center - Coord(x=40, ort=hor)
@@ -226,12 +230,12 @@ class Robot(object):
         print "    > r{}: bring cube to center pos".format(ra.id)
         ra.p2p(ra_center_retr)
         ra.gripper.twist(1)
-        ra.lin_p2p(ra_center, comp=9.5)
+        ra.sync_p2p(ra_center, comp=9.5)
 
         print "    > r{}: grip cube".format(rb.id)
         rb.p2p(rb_center_retr)
         wait(0.5)
-        rb.lin_p2p(rb_center + Coord(x=7, z=2))
+        rb.sync_p2p(rb_center + Coord(x=7, z=2))
         wait(2.0)
         rb.gripper.close()
 
@@ -241,7 +245,7 @@ class Robot(object):
 
         print "    > r{}: let go and leave".format(ra.id)
         ra.gripper.open()
-        ra.lin_p2p(ra_center_retr)
+        ra.sync_p2p(ra_center_retr)
         ra.gripper.twist(0)
 
         print "    > done. r{} has cube. returning to home positions".format(rb.id)
@@ -255,13 +259,16 @@ class Robot(object):
 
         comp = 8.0
 
+        ra_center = ra.pos.center
+        rb_center = rb.pos.center
+
         # retracted points
         if ra.id is 0:
-            ra_center = ra.pos.center + Coord(z=comp)
-            rb_center = rb.pos.center
+            ra_center += Coord(z=comp)
+            # rb_center = rb.pos.center
         elif ra.id is 1:
-            ra_center = ra.pos.center
-            rb_center = rb.pos.center + Coord(z=3)
+            # ra_center = ra.pos.center
+            rb_center += Coord(z=3)
 
         ra_center_retr = ra.pos.center - Coord(x=50, ort=hor)
         rb_center_retr = rb.pos.center - Coord(x=40, ort=hor)
@@ -269,137 +276,185 @@ class Robot(object):
         print "    > r{}: bring cube to center pos".format(ra.id)
         ra.p2p(ra_center_retr)
         ra.gripper.twist(1)
-        ra.lin_p2p(ra_center, comp=9.5)
+        ra.sync_p2p(ra_center, comp=9.5)
         rb.home()
 
         print "    > r{}: grip cube".format(rb.id)
         rb.p2p(rb_center_retr)
         wait(0.5)
-        rb.lin_p2p(rb_center + Coord(x=7, z=2))
+        rb.sync_p2p(rb_center + Coord(x=7, z=2))
         wait(2.0)
         rb.gripper.close()
 
         print "    > switching compensation".format(ra.id)
         rb.hascube = True
-        #rb.compensate(9.0)
+        # rb.compensate(9.0)
         ra.hascube = False
-        #ra.compensate(-8.0)
+        # ra.compensate(-8.0)
 
         print "    > r{}: flipping gripper".format(ra.id)
         ra.gripper.open()
-        ra.lin_p2p(ra_center_retr)
+        ra.sync_p2p(ra_center_retr)
 
         ra.gripper.twist(0)
         rb.gripper.twist(-1)
         wait(0.5)
-        ra.lin_p2p(ra_center - Coord(z=comp))
+        ra.sync_p2p(ra_center - Coord(z=comp))
         wait(2.0)
         ra.gripper.close()
 
         print "    > r{} leaving".format(rb.id)
         rb.gripper.open()
-        rb.lin_p2p(rb_center_retr)
+        rb.sync_p2p(rb_center_retr)
 
         print "    > done. r{} has cube. returning to home positions".format(ra.id)
         rb.home()
         ra.p2p(ra.pos.home)
 
-    def turn(rb, ra, face, turns):
-        """rb brings cube to one of 3 maneuver positions and ra turns the face
+    def turn(ra, rb, face, turns):
+        """ra brings cube to one of 3 maneuver positions and rb turns the face
 
         Args:
-            ra (Robot)(self): Robot(a) making the move
-            rb (Robot): Robot(b) holding cube center
-            ort (str): wrist orientation of robot b (upw, hor, dwd)
-            turns (int): number of desired 90°-turns [0,2]
+            rb (Robot)(self): Robot(a) making the move
+            ra (Robot): Robot(b) holding cube center
+            face (str): 'a' or 'b' or 'c'
+            turns (int): number of desired 90°-turns -1..2
+
+        Face names (horizontal grip):
+            a: upper
+            b: frontal
+            c: lower
         """
-        if turns > 2: raise Exception("invalid amount of turns")
-        if rb.hascube:
+        if turns > 2:
+            raise Exception("invalid amount of turns")
+        if ra.hascube:
+            # TODO# Hier: Fallunterscheidungen. weniger doppelter code bzw keine roboter zuweisung im hauptprogramm nötig
+            if face in ['a', 'b', 'c']:
+                print "r{} turning {}-face on r{}".format(rb.id, face, ra.id)
 
-            # TODO# Hier: Fallunterscheidungen. weniger doppelter code
+                if face is 'a':
+                    # bring cube to hold pos
+                    ra.sync_p2p(ra.pos.a_hold + Coord(z=130)) # make sure we dont hit the ground
+                    wait(1.2)
+                    ra.sync_p2p(ra.pos.a_hold)
+                    wait(1.0)
 
-            print "r{} turning local {}-face on r{}".format(ra.id, face, rb.id)
-            if face is 'D':
-                rb.p2p(rb.pos.D_hold)
+                    print "\tr{} approaching turning position".format(rb.id)
+                    # rb vorbereiten
+                    rb.p2p(rb.pos.home)
+                    # pretwist = 1 if turns < 0 else -1
+                    pretwist = -1 if abs(turns) > 1 else 0
+                    rb.gripper.twist(pretwist)  # prepare wrist for 180° turn
 
-                print "r{} approaching turning position".format(ra.id)
-                wait(1.0)
-                ra.p2p(ra.pos.home)
-                if turns > 1: ra.gripper.twist(-1)  # prepare wrist for 180° turn # vlt für alle fälle lassen
-                wait(1.0)
-                ra.p2p(ra.pos.D_retr)
-                ra.lin_p2p(ra.pos.D_turn)
-                ra.gripper.close()
+                    """
+                    # zu würfel fahren und greifen (seitlich reindrehen)
+                    rb.p2p(rb.pos.a_retr_prepare)
+                    rb.sync_p2p(rb.pos.a_turn_prepare)
+                    rb.gripper.close(partial=0.7)
+                    rb.sync_p2p(rb.pos.a_turn, comp=6)
+                    wait(1.0)
+                    rb.gripper.close()
+                    wait(1.0)
+                    """
+                    # zu würfel fahren (von oben)
+                    rb.p2p(rb.pos.a_retr)
+                    rb.gripper.close(partial=0.7)  # es ist zu eng
+                    rb.sync_p2p(rb.pos.a_turn)
+                    wait(1.0)
+                    rb.gripper.close()
+                    wait(1.0)
 
-                print "turning cube {} deg".format(turns * 90)
-                ra.gripper.twist(-1 + turns)
-                ra.gripper.open()
-                ra.lin_p2p(ra.pos.D_retr)
+                    print "\tturning cube {} deg".format(turns * 90)
+                    rb.gripper.twist(pretwist + turns)
+                    if pretwist != 0:
+                        wait(3.0)
+                    # open ra and leave
+                    rb.gripper.close(partial=0.7)  # partially open. immer noch zu eng
+                    rb.sync_p2p(rb.pos.a_retr)
+                    rb.gripper.open()
+                    ra.gripper.twist(0)
+                    rb.home()
+                    # return midpos
+                    wait(1.0)
+                    ra.sync_p2p(ra.pos.a_hold + Coord(z=100))
 
-            elif face is 'F':
-                rb.p2p(rb.pos.F_hold, comp=8.5)
+                elif face is 'b':
+                    """ Methode normal:
+                    ra.p2p(ra.pos.b_hold, comp=8.5)
 
-                print "r{} approaching turning position".format(ra.id)
-                ra.p2p(ra.pos.home)
-                if turns > 1: ra.gripper.twist(-1)  # prepare wrist for 180° turn # vlt für alle fälle lassen
-                ra.p2p(ra.pos.F_retr)
-                ra.lin_p2p(ra.pos.F_turn, comp=6)
-                ra.gripper.close()
+                    print "\tr{} approaching turning position".format(rb.id)
+                    rb.p2p(rb.pos.home)
+                    pretwist = -1 if abs(turns) > 1 else 0
 
-                print "turning cube {} deg".format(turns * 90)
-                ra.gripper.twist(-1 + turns)
-                ra.gripper.open()
-                ra.lin_p2p(ra.pos.F_retr)
+                    ra.gripper.twist(pretwist)  # prepare wrist for 180° turn # vlt für alle fälle lassen
+                    rb.p2p(rb.pos.b_retr)
+                    rb.sync_p2p(rb.pos.b_turn, comp=6)
+                    rb.gripper.close()
 
-            elif face is 'U':
-                # bring cube to hold pos
-                rb.p2p(rb.pos.U_hold + Coord(z=100))
-                wait(0.2)
-                rb.lin_p2p(rb.pos.U_hold, comp=8.5)
-                wait(1.0)
+                    print "\tturning cube {} deg".format(turns * 90)
+                    ra.gripper.twist(0)
+                    rb.gripper.twist(pretwist + turns)
+                    if pretwist != 0:
+                        wait(3.0) # wartezeit in twist buggy
+                    rb.gripper.open()
+                    rb.sync_p2p(rb.pos.b_retr)
+                    """
+                    # Methode "Boden":
+                    pretwist = -1 if abs(turns) > 1 else 0
+                    ra.p2p(ra.pos.cube_retr)
+                    ra.gripper.twist(pretwist)
+                    ra.sync_p2p(ra.pos.cube)
+                    ra.gripper.twist(pretwist+turns)
+                    if abs(turns) > 1:
+                        wait(3.0)
+                    ra.sync_p2p(ra.pos.cube_retr)
+                    ra.gripper.twist(0)
 
-                print "r{} approaching turning position".format(ra.id)
-                # ra vorbereiten
-                ra.p2p(ra.pos.home)
-                ra.gripper.twist(-1)  # prepare wrist for 180° turn # vlt für alle fälle lassen
+                elif face is 'c':
+                    # prepare robots
+                    rb.home()
+                    ra.p2p(ra.pos.home)
+                    ra.p2p(ra.pos.c_hold)
 
-                # zu würfel fahren und greifen
-                ra.p2p(ra.pos.U_retr)
-                wait(1.0)
-                ra.lin_p2p(ra.pos.U_turn, comp=6)
-                wait(1.0)
-                ra.gripper.close()
-                wait(1.0)
+                    # compensate weight
+                    ra.state.q2 -= 5 * pi/180
+                    ra.publish()
 
-                print "turning cube {} deg".format(turns * 90)
-                # twist
-                ra.gripper.twist(-1 + turns)
-                wait(3.0)
-                # open ra and leave
-                ra.gripper.open()
-                ra.lin_p2p(ra.pos.U_retr)
-                ra.home()
-                # return midpos
-                wait(1.0)
-                rb.lin_p2p(rb.pos.U_hold + Coord(z=100))
+                    print "\tr{} approaching turning position".format(rb.id)
+                    #wait(1.0)
+                    pretwist = -1 if abs(turns) > 1 else 0  # prepare wrist for 180° turn # vlt für alle fälle lassen
+                    wait(1.0)
+                    rb.gripper.twist(pretwist)
+                    rb.p2p(rb.pos.c_retr)
+                    rb.sync_p2p(rb.pos.c_turn, steps=70)
+                    rb.gripper.close()
 
+                    print "\tturning cube {} deg".format(turns * 90)
+                    rb.gripper.twist(pretwist + turns)
+                    wait(3)
+                    rb.gripper.open()
+                    rb.sync_p2p(rb.pos.c_retr, comp=-8, steps=50)
+                    ra.gripper.twist(0)
+                    rb.home()
+                    wait(1)
             else:
-                raise Exception("invalid faceturn")
+                raise Exception("invalid face-turn")
 
             # return home
-            rb.p2p(rb.pos.home)
+            ra.p2p(ra.pos.home)
         else:
             raise Exception("robot gripping the cube center cannot turn")
 
     def scan_cube(ra, rb):
         pass
+        # TODO: kann weg?
 
 
 class Gripper(object):
     """ subclass for gripper control and twist logic """
 
     def __init__(self, robot):
-        self.turns = 0
+        self.turns = 0  # obsolete
         self.robot = robot
 
     def open(self):
@@ -409,9 +464,15 @@ class Gripper(object):
         self.robot.hascube = False
         wait(1.0)
 
-    def close(self):
-        """ closes the gripper to const defined position. publishes to robot """
-        self.robot.state.q5 = self.robot.const.closed
+    def close(self, partial=None):
+        """
+        closes the gripper to const defined position. publishes to robot
+        partial (float): partially close gripper
+        """
+        if partial is None:
+            self.robot.state.q5 = self.robot.const.closed
+        else:
+            self.robot.state.q5 = self.robot.const.closed * partial
         self.robot.publish()
         self.robot.hascube = True
         wait(1.0)
@@ -443,10 +504,13 @@ class Gripper(object):
         bounds = range(-1, 2)
         if isinstance(n, int):
             if n in bounds:
-                self.turns = n
-                self.robot.state.q4 = n * (pi / 2) + n * pi / 180  # n times 90° +- 1°
+                self.turns = n  # obsolete
+                self.robot.state.q4 = n * (pi / 2) + n * pi / 180  # n times 90° +- n°
                 self.robot.publish()
-                wait(abs(n) * 3.5)
+                if abs(n) < 2:
+                    wait(3)
+                else:
+                    wait(8)
             else:
                 raise ValueError('n has to be in bounds [-1,1]')
         else:

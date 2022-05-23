@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import rospy
-from std_msgs.msg import Float64  # , String
+from std_msgs.msg import Float64
 
 from consts import HardwareLimits
 
@@ -107,4 +107,5 @@ class JointPublisher(object):
                 lim.th5min <= joints.q5 <= lim.th5max):
             return joints
         else:
+            print(joints.q0, joints.q1, joints.q2, joints.q3, joints.q4, joints.q5)
             raise Exception('! desired joint states off hardware limits !')

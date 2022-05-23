@@ -38,11 +38,18 @@ class Coord(object):
 
         # point p in both coordinate forms
         elif a is None and b is None:
+            #self._iscart = False
             #if ort is None: raise Exception("no point orientation specified") # 2d points cant have this line
-            if all(var is None for var in [x, y, r, th]):   autocvt = None
-            elif x is None and y is None:                   autocvt = self.cnv_cartesian
-            elif r is None and th is None:                  autocvt = self.cnv_cylindrical
-            else:                                           autocvt = None
+            if all(var is None for var in [x, y, r, th]):
+                autocvt = None
+            elif x is None and y is None:
+                autocvt = self.cnv_cartesian
+                #self._iscart = False
+            elif r is None and th is None:
+                autocvt = self.cnv_cylindrical
+                #self._iscart = True
+            else:
+                autocvt = None
 
             self.__isvect = isvect
             self.x = x if x is not None else 0.0
@@ -101,7 +108,10 @@ class Coord(object):
                 elif self.ort is None and other.ort is not None:        orient = other.ort
                 elif self.ort is not None and other.ort is not None:    orient = self.ort   # if both not none and not equal, pick one
                 else:                                                   orient = None
-            return Coord(isvect = isvector, x = self.x + other.x, y = self.y + other.y, z = self.z + other.z, ort = orient)
+            #if other._iscart:
+            return Coord(isvect=isvector, x=self.x + other.x, y=self.y + other.y, z=self.z + other.z, ort=orient)
+            #else:
+                #return Coord(isvect=isvector, r=self.r+other.r, th=self.th+other.th, z=self.z + other.z, ort=orient)
         else: raise TypeError
 
     def __sub__(self, other):
@@ -159,7 +169,7 @@ class Coord(object):
         else: raise TypeError
 
     def __repr__(self):
-        return [self.x, self.y, self.z, self.r, self.th, self.ort]
+        return "%s x:%s y:%s z:%s r:%s th:%s ort:%s" % (self.__class__.__name__ , self.x, self.y, self.z, self.r, self.th, self.ort)
 
     def __str__(self):
         if self.__isvect:

@@ -4,8 +4,6 @@
 import time
 from math import acos
 
-# convenience functions
-
 
 def cossatz(a, b, c):
     """ returns angle between triangle sides a and b """
@@ -15,8 +13,9 @@ def cossatz(a, b, c):
         raise Exception("! desired point out of reach !")
 
 
-def wait(t = 3.0):
+def wait(t=3):
     """ wait time in secs """
     if isinstance(t, (float, int)):
         time.sleep(t)
-    else: raise Exception("parameter not a number")
+    else:
+        raise Exception("parameter not a number")

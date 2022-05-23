@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from math import pi
-from misc import cossatz
 from coord import Coord
 
 # possible orientations
@@ -10,7 +9,10 @@ upw = 'upw'
 hor = 'hor'
 dwd = 'dwd'
 
-speed = 40  # mm/s   # for timing purposes
+speed = 45  # mm/s   # for timing purposes
+
+
+# TODO: speed in rad per sec instead of lin speed
 
 
 class Positions(object):
@@ -31,24 +33,21 @@ class Positions(object):
             self.cube = (r0_r1 / 2) + Coord(z=55, x=-4, ort=dwd)
             self.cube_retr = self.cube + Coord(z=50)
 
-        # holding pos
-        self.D_hold = Coord(x=180, y=0, z=420, ort=hor)
-        self.F_hold = self.center
-        self.U_hold = Coord(x=300, y=0, z=70, ort=hor)
+        # fixed turning positions
+        self.a_hold = Coord(x=300, z=70, ort=hor)
+        self.a_turn = Coord(x=157, z=90, ort=dwd)
+        self.a_turn_prepare = Coord(th=-(pi * 20 / 180), r=157, z=95, ort=dwd)
+        self.a_retr = self.a_turn + Coord(z=40)
+        self.a_retr_prepare = Coord(th=-(pi * 20 / 180), r=155, z=120, ort=dwd)
 
-        # turning pos
-        self.D_turn = Coord(x=250, y=0, z=400, ort=dwd)
-        self.F_turn = self.center - Coord(x=18.5)
-        self.U_turn = Coord(x=158, y=0, z=90, ort=dwd)
+        self.b_hold = self.center
+        self.b_turn = self.center - Coord(x=18.5, z=10)
+        self.b_retr = self.b_turn - Coord(x=50)
 
-        # retracted turning pos
-        self.D_retr = self.D_turn - Coord(x=50)
-        self.F_retr = self.F_turn - Coord(x=50)
-        self.U_retr = self.U_turn + Coord(z=25)
-
-        # scanning poses (joint values)
-
-        # self.scan_c = Joints(0.0, -pi/4, pi/4, 0.0, 0.0, 0.0)  # ! TODO: 2x übergabe (gebender muss vertikal halten) , danach
+        # comp: q3 -= 3deg
+        self.c_hold = Coord(x=220, z=377, ort=upw)
+        self.c_turn = Coord(x=195, z=363, ort=hor)
+        self.c_retr = self.c_turn - Coord(x=50)
 
         # uncomment if robots not facing fronts and cubepos symmetrical:
         """
@@ -155,7 +154,7 @@ class GripStructure(object):
         # self.sponge_dist = 3.0
         # self.sponge_squish = 0.0
         self.closed = 54 * pi / 180  # für 19mm greifer-stangen # cossatz(  a = self.servo_horn_radius,
-        #self.closed = 30 * pi / 180  # std greifer-stangen
+        # self.closed = 30 * pi / 180  # std greifer-stangen
         # b = 32,#(self.cubesize/2)+(self.sponge_dist - self.sponge_squish),
         # c = self.gripper_arm_length )
         self.__init = True

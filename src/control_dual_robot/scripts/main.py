@@ -8,13 +8,12 @@ import rospkg
 from robot import Robot
 from misc import wait
 from joints import Joints
-from math import pi
 import cv2
 
 
 class Main(object):
     def __init__(self):
-        rospy.init_node('pickup_and_scan')
+        rospy.init_node('control')
         self.r0 = Robot(0)
         self.r1 = Robot(1)
 
@@ -40,12 +39,11 @@ class Main(object):
 
     def main(self):
         # while not rospy.is_shutdown(): # for continuous execution
-        #self.demo(self.r0, self.r1)
-        # self.control()
-        self.pick_scan_cube(self.r0, self.r1)
-        #cv2.waitKey(0)
+        # self.demo_handover(self.r0, self.r1)
+        self.demo_turning(self.r0, self.r1)
+        # self.pick_scan_cube(self.r0, self.r1)
 
-    def demo(self, ra, rb):
+    def demo_handover(self, ra, rb):
         ra.pickup()
         for i in range(5):
             print "Durchlauf: {}".format(i)
@@ -57,32 +55,16 @@ class Main(object):
         #  - roboter hält würfel, weiß welche ("ursprungs")-flächen blockiert sind
         #  - ist nächste drehung machbar?  ja: dreh a,b,c  nein: übergabe
 
-        """
-        # turning
-        self.r1.turn(self.r0, 'F', 1)
-        self.r1.handover(self.r0)
-        self.r0.turn(self.r1, 'U', 2)
-        self.r0.handover(self.r1)
-        self.r1.putdown()
-        """
-
-    def control(self):
-        rospy.init_node('control_dual_robots_manual')
-        print 'init control'
-        self.r0 = Robot(0)
-        self.r1 = Robot(1)
-
-        # () wait for start event
-
-        self.r0.pickup()
-
-        # put down cube
-        if self.r0.hascube:
-            self.r0.putdown()
-        else:
-            self.r1.putdown()
-
-        rospy.spin()
+    def demo_turning(self, ra, rb):
+        ra.pickup()
+        # ra validation test loop:
+        ra.turn(rb, 'b', 2)
+        for face in ['a', 'b', 'c']:
+            for n in range(-1, 3):
+                if n is 0:
+                    continue
+                ra.turn(rb, face, n)
+        ra.putdown()
 
     def pick_scan_cube(self, ra, rb):
         # pickup cube
@@ -104,17 +86,17 @@ class Main(object):
         rb.home()
 
     def scan_half_cube(self, r, other):
-        # get params
-        scan_a = Joints(0.0,
-                        -35 * pi / 180,
-                        -5 * pi / 180,
-                        35 * pi / 180,
-                        0.0, 0.0)
-        scan_b = Joints(0.0,
-                        10.0 * pi / 180,
-                        -5.0 * pi / 180,
-                        -98 * pi / 180,
-                        0.0, 0.0)
+        # scanning poses (joint values)
+        self.scan_a = Joints(0.0,
+                             -35 * pi / 180,
+                             -5 * pi / 180,
+                             35 * pi / 180,
+                             0.0, 0.0)
+        self.scan_b = Joints(0.0,
+                             10.0 * pi / 180,
+                             -5.0 * pi / 180,
+                             -98 * pi / 180,
+                             0.0, 0.0)
 
         a, b, c = None, None, None
         if r.id == 0:
@@ -127,16 +109,16 @@ class Main(object):
             c = 'B'
 
         # beginn scanning
-        r.angular(scan_a)
+        r.angular(r.pos.scan_a)
         self.take_image(r.id, face=a)
 
-        r.angular(scan_b)
+        r.angular(r.pos.scan_b)
         wait(1)
         self.take_image(r.id, face=b)
 
         r.flip(other)  # flip cube 180° (to scan D side) # ! 2. iteration: timing fails on right side (r1)
 
-        r.angular(scan_a)
+        r.angular(r.pos.scan_a)
         self.take_image(r.id, face=c)
 
     def take_image(self, rid, face):
@@ -172,12 +154,6 @@ class Main(object):
             cam.release()
         else:
             print("! could not open camera")
-
-
-def debug():
-    rospy.init_node('debug')
-    #demo()
-    rospy.spin()
 
 
 if __name__ == '__main__':
