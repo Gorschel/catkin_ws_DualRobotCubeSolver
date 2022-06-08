@@ -19,3 +19,12 @@ def wait(t=3):
         time.sleep(t)
     else:
         raise Exception("parameter not a number")
+
+def flip_dict_values(indict):
+    """ flip dict values """
+    outdict = {}
+    values = indict.values()
+    values.reverse()
+    for i, (k, v) in enumerate(indict.items()):
+        outdict[k] = values[i]
+    return outdict

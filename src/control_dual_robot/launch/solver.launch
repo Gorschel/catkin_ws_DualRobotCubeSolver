@@ -2,6 +2,6 @@
 <launch>
 
     <node name="cube_solver_server" pkg="twophase_solver_ros" type="solver_server.py" output="screen" />
-    <node name="cube_solver_client" pkg="twophase_solver_ros" type="solver_client_opencv.py" output="screen" />
+    <!-- <node name="cube_solver_client" pkg="twophase_solver_ros" type="solver_client_opencv.py" output="screen" /> -->
 
 </launch>

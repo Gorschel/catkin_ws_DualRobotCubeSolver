@@ -18,6 +18,9 @@ class Joints(object):
         self.q4 = th4 if th4 is not None else 0.0
         self.q5 = th5 if th5 is not None else 0.0
 
+    def max_angle(self):
+        return max(list(map(abs, [self.q0, self.q1, self.q2, self.q3, self.q4, self.q5])))
+
     def __repr__(self):
         return self.q0, self.q1, self.q2, self.q3, self.q4, self.q5
 

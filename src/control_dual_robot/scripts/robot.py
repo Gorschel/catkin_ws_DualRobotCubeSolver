@@ -137,25 +137,30 @@ class Robot(object):
 
     def angular(self, j):
         print "r{} moving to angle pos: {}".format(self.id, j)
+        oldstate = copy(self.state)
         self.state.q0 = j.q0
         self.state.q1 = j.q1
         self.state.q2 = j.q2
         self.state.q3 = j.q3
         self.state.q4 = j.q4
         self.publish()
-        wait(4)
+        diff = self.state - oldstate
+        t = diff.max_angle() / ang_speed
+        wait(t)
 
     def p2p(self, point, comp=None):
         if not isinstance(point, Coord): raise Exception("no coordinate given")
         vect, dist = self.TCP.distto(point)
         if dist > 0:
+            oldstate = copy(self.state)
             self.TCP = point
             self.ik()
             self.compensate(comp)
             self.publish()
 
             # wait time depends on distance
-            t = dist / speed
+            diff = self.state - oldstate
+            t = diff.max_angle() / ang_speed  # t = dist / speed
             wait(t)
 
     def sync_p2p(self, point, steps=50, comp=None):
@@ -169,10 +174,10 @@ class Robot(object):
             s0 = copy(self.state)
             self.TCP = point
             self.ik()
-            angles = copy(self.state - s0)
+            angles = self.state - s0
 
             # get timing
-            t = dist / speed
+            t = angles.max_angle() / ang_speed  # t = dist / speed
             dt = t / steps
 
             for n in range(1, steps + 1):
@@ -191,10 +196,10 @@ class Robot(object):
         # print "r{}: picking up ..".format(self.id)
 
         self.p2p(self.pos.cube_retr)
-        self.sync_p2p(self.pos.cube, 50)
+        self.sync_p2p(self.pos.cube, steps=75)
         wait(0.5)
         self.gripper.close()
-        self.sync_p2p(self.pos.cube_retr, 50)
+        self.sync_p2p(self.pos.cube_retr, steps=75)
         print "r{}: picked up.".format(self.id)
 
     def putdown(self):
@@ -202,10 +207,10 @@ class Robot(object):
         # print "r{}: putting down ..".format(self.id)
         # wait(1.0)
         self.p2p(self.pos.cube_retr)
-        self.sync_p2p(self.pos.cube, 50)
+        self.sync_p2p(self.pos.cube, steps=75)
         # wait(1.0)
         self.gripper.open()
-        self.sync_p2p(self.pos.cube_retr, 50)
+        self.sync_p2p(self.pos.cube_retr, steps=75)
         print "r{}: put down.".format(self.id)
 
     def handover(ra, rb):
@@ -230,12 +235,12 @@ class Robot(object):
         print "    > r{}: bring cube to center pos".format(ra.id)
         ra.p2p(ra_center_retr)
         ra.gripper.twist(1)
-        ra.sync_p2p(ra_center, comp=9.5)
+        ra.sync_p2p(ra_center, steps=75, comp=9.5)
 
         print "    > r{}: grip cube".format(rb.id)
         rb.p2p(rb_center_retr)
         wait(0.5)
-        rb.sync_p2p(rb_center + Coord(x=7, z=2))
+        rb.sync_p2p(rb_center + Coord(x=7, z=2), steps=75)
         wait(2.0)
         rb.gripper.close()
 
@@ -359,7 +364,7 @@ class Robot(object):
                     # zu würfel fahren (von oben)
                     rb.p2p(rb.pos.a_retr)
                     rb.gripper.close(partial=0.7)  # es ist zu eng
-                    rb.sync_p2p(rb.pos.a_turn)
+                    rb.sync_p2p(rb.pos.a_turn, steps=75)
                     wait(1.0)
                     rb.gripper.close()
                     wait(1.0)
@@ -403,11 +408,11 @@ class Robot(object):
                     pretwist = -1 if abs(turns) > 1 else 0
                     ra.p2p(ra.pos.cube_retr)
                     ra.gripper.twist(pretwist)
-                    ra.sync_p2p(ra.pos.cube)
+                    ra.sync_p2p(ra.pos.cube, steps=75)
                     ra.gripper.twist(pretwist+turns)
                     if abs(turns) > 1:
                         wait(3.0)
-                    ra.sync_p2p(ra.pos.cube_retr)
+                    ra.sync_p2p(ra.pos.cube_retr, steps=75)
                     ra.gripper.twist(0)
 
                 elif face is 'c':

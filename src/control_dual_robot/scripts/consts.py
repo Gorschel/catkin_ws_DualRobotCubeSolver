@@ -10,6 +10,7 @@ hor = 'hor'
 dwd = 'dwd'
 
 speed = 45  # mm/s   # for timing purposes
+ang_speed = pi / 4.7  # rad/s # pi / 4,7s
 
 
 # TODO: speed in rad per sec instead of lin speed
@@ -25,20 +26,20 @@ class Positions(object):
 
         if robot.id is 0:
             self.center = (r0_r1 / 2) + Coord(z=180, x=-5, ort=hor)
-            self.cube = (r0_r1 / 2) + Coord(z=43, x=-5, ort=dwd)
+            self.cube = (r0_r1 / 2) + Coord(z=43, x=-6, ort=dwd)
             self.cube_retr = self.cube + Coord(z=50)
 
         if robot.id is 1:
             self.center = (r0_r1 / 2) + Coord(z=180, x=-5, ort=hor)
-            self.cube = (r0_r1 / 2) + Coord(z=55, x=-4, ort=dwd)
+            self.cube = (r0_r1 / 2) + Coord(z=55, x=-5, ort=dwd)
             self.cube_retr = self.cube + Coord(z=50)
 
         # fixed turning positions
-        self.a_hold = Coord(x=300, z=70, ort=hor)
-        self.a_turn = Coord(x=157, z=90, ort=dwd)
-        self.a_turn_prepare = Coord(th=-(pi * 20 / 180), r=157, z=95, ort=dwd)
+        self.a_hold = Coord(x=300, y=2, z=70, ort=hor)
+        self.a_turn = Coord(x=154, z=95, ort=dwd)
         self.a_retr = self.a_turn + Coord(z=40)
-        self.a_retr_prepare = Coord(th=-(pi * 20 / 180), r=155, z=120, ort=dwd)
+        # self.a_turn_prepare = Coord(th=-(pi * 20 / 180), r=154, z=95, ort=dwd)
+        # self.a_retr_prepare = Coord(th=-(pi * 20 / 180), r=155, z=120, ort=dwd)
 
         self.b_hold = self.center
         self.b_turn = self.center - Coord(x=18.5, z=10)
@@ -48,20 +49,6 @@ class Positions(object):
         self.c_hold = Coord(x=220, z=377, ort=upw)
         self.c_turn = Coord(x=195, z=363, ort=hor)
         self.c_retr = self.c_turn - Coord(x=50)
-
-        # uncomment if robots not facing fronts and cubepos symmetrical:
-        """
-        # transform points for robot id
-        if robot.id is 0:
-            self.cube       = cube      + Coord(y = 1)
-            self.cube_retr  = cube_retr + Coord(y = 1)
-            self.center     = center    + Coord(y = 1)
-
-        elif robot.id is 1:
-            self.cube       = cube      + Coord(y = 1)
-            self.cube_retr  = cube_retr + Coord(y = 1)
-            self.center     = r0_center# - r0_r1
-        #"""
 
         self.__init = True
 
@@ -73,7 +60,10 @@ class Positions(object):
 
 
 class HardwareLimits(object):
-    """Approximated hardware limits. Exceeding them would result in structural collision"""
+    """
+    Approximated hardware limits. Exceeding them would result in structural collision.
+    No collision warning or detection with base-plate or other objects
+    """
     __init = False
 
     def __init__(self):
