@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!--launch robot nodes-->
+    <include file="$(find control_dual_robot)/launch/robot_0.launch"/>
+    <include file="$(find control_dual_robot)/launch/robot_1.launch"/>
+
+    <!--launch two phase solver service-->
+    <include file="$(find control_dual_robot)/launch/solver.launch"/>
+
+    <!--launch control node-->
+    <include file="$(find control_dual_robot)/launch/control.launch"/>
+
+</launch>

@@ -8,6 +8,11 @@ project(control_dual_robot)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  rospy
+  std_msgs
+  genmsg
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -52,23 +57,25 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate services in the 'srv' folder
 # add_service_files(
+#   DIRECTORY
+#   srv
 #   FILES
-#   Service1.srv
-#   Service2.srv
+#   Control.srv
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+ add_action_files(
+   DIRECTORY
+   action
+   FILES
+   Control.action
+ )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   actionlib_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,8 +108,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES control_dual_robot
-#  CATKIN_DEPENDS arbotix_python dynamixel_motor phantomx_reactor_controller sensor_msgs twophase_solver_ros
+   LIBRARIES control_dual_robot
+   CATKIN_DEPENDS 
 #  DEPENDS system_lib
 )
 

@@ -243,8 +243,11 @@ class Robot(object):
         rb.sync_p2p(rb_center + Coord(x=7, z=2), steps=75)
         wait(2.0)
         rb.gripper.close()
+        rb.hascube = True
+        ra.hascube = False
 
         # TODO switch compensation
+        print "    > switching compensation".format(ra.id)
         # rb.lin_p2p(rb.pos.center)# + Coord(z = comp))
         # ra.lin_p2p(ra.pos.center)
 
@@ -281,21 +284,19 @@ class Robot(object):
         print "    > r{}: bring cube to center pos".format(ra.id)
         ra.p2p(ra_center_retr)
         ra.gripper.twist(1)
-        ra.sync_p2p(ra_center, comp=9.5)
+        ra.sync_p2p(ra_center, steps=75, comp=9.5)
         rb.home()
 
         print "    > r{}: grip cube".format(rb.id)
         rb.p2p(rb_center_retr)
         wait(0.5)
-        rb.sync_p2p(rb_center + Coord(x=7, z=2))
+        rb.sync_p2p(rb_center + Coord(x=7, z=2), steps=75)
         wait(2.0)
         rb.gripper.close()
 
-        print "    > switching compensation".format(ra.id)
-        rb.hascube = True
-        # rb.compensate(9.0)
-        ra.hascube = False
-        # ra.compensate(-8.0)
+        # compensate cube weight
+        rb.compensate(-8.0)
+        rb.publish()
 
         print "    > r{}: flipping gripper".format(ra.id)
         ra.gripper.open()

@@ -26,7 +26,7 @@ class Positions(object):
 
         if robot.id is 0:
             self.center = (r0_r1 / 2) + Coord(z=180, x=-5, ort=hor)
-            self.cube = (r0_r1 / 2) + Coord(z=43, x=-6, ort=dwd)
+            self.cube = (r0_r1 / 2) + Coord(z=43, x=-7, ort=dwd)
             self.cube_retr = self.cube + Coord(z=50)
 
         if robot.id is 1:
