@@ -26,7 +26,7 @@ class Joints(object):
 
     def __str__(self):
         return "%s q0:%s q1:%s q2:%s q3:%s q4:%s q5:%s" % (
-        self.__class__.__name__, self.q0, self.q1, self.q2, self.q3, self.q4, self.q5)
+            self.__class__.__name__, self.q0, self.q1, self.q2, self.q3, self.q4, self.q5)
 
     def __sub__(self, other):
         q0 = self.q0 - other.q0
@@ -73,16 +73,16 @@ class JointPublisher(object):
     """ creates set of controllable joint publishers """
 
     def __init__(self, id):
-        self.j0 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_yaw_joint/command', Float64,
-                                  queue_size=1)
-        self.j1 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_pitch_joint/command', Float64,
-                                  queue_size=1)
-        self.j2 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/elbow_pitch_joint/command', Float64,
-                                  queue_size=1)
-        self.j3 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/wrist_pitch_joint/command', Float64,
-                                  queue_size=1)
-        self.j4 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/wrist_roll_joint/command', Float64,
-                                  queue_size=1)
+        self.j0 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_yaw_joint/command',
+                                  Float64, queue_size=1)
+        self.j1 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_pitch_joint/command',
+                                  Float64, queue_size=1)
+        self.j2 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/elbow_pitch_joint/command',
+                                  Float64, queue_size=1)
+        self.j3 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/wrist_pitch_joint/command',
+                                  Float64, queue_size=1)
+        self.j4 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/wrist_roll_joint/command',
+                                  Float64, queue_size=1)
         self.j5 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/gripper_revolute_joint/command',
                                   Float64, queue_size=1)
 

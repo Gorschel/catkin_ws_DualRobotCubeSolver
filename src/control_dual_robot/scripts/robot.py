@@ -28,10 +28,11 @@ class Robot(object):
             raise Exception("no robot id given")
         else:
             self.id = id
-            self.hascube = False
+            self._hascube = False
+            self._enabled = True
             self.TCP = Coord()
             self.state = Joints()
-            self.pub = JointPublisher(id)
+            self.__pub = JointPublisher(id)
             self.const = RobotStructure()
             self.pos = Positions(self)
             self.gripper = Gripper(self)
@@ -53,7 +54,8 @@ class Robot(object):
             #"""
 
     def publish(self):
-        self.pub.publish(self.state)
+        if self._enabled:
+            self.__pub.publish(self.state)
 
     def ik(self):
         """ inverse kinematics for joints 0..3. publishes to robot """
@@ -123,12 +125,12 @@ class Robot(object):
         # """
         if deg is None:
             if self.TCP.ort is hor:
-                if self.hascube:
+                if self._hascube:
                     self.state.q3 -= pi * 8.5 / 180
                 else:
                     self.state.q3 -= pi * 4.5 / 180
             elif self.TCP.ort is dwd:
-                if self.hascube:
+                if self._hascube:
                     self.state.q3 -= pi * 4.5 / 180
                 else:
                     self.state.q3 -= pi * 4.5 / 180
@@ -149,47 +151,60 @@ class Robot(object):
         wait(t)
 
     def p2p(self, point, comp=None):
-        if not isinstance(point, Coord): raise Exception("no coordinate given")
-        vect, dist = self.TCP.distto(point)
-        if dist > 0:
-            oldstate = copy(self.state)
-            self.TCP = point
-            self.ik()
-            self.compensate(comp)
-            self.publish()
+        run_once = True
+        while run_once and self._enabled:
+            if not isinstance(point, Coord): raise Exception("no coordinate given")
+            vect, dist = self.TCP.distto(point)
+            if dist > 0:
+                oldstate = copy(self.state)
+                self.TCP = point
+                self.ik()
+                self.compensate(comp)
+                self.publish()
 
-            # wait time depends on distance
-            diff = self.state - oldstate
-            t = diff.max_angle() / ang_speed  # t = dist / speed
-            wait(t)
+                # wait time depends on distance
+                diff = self.state - oldstate
+                t = diff.max_angle() / ang_speed  # t = dist / speed
+                wait(t)
+            run_once = False
 
     def sync_p2p(self, point, steps=50, comp=None):
         """moves from current pos to given point. higher stepsize, the higher the precision (but may be slower)"""
-        if not isinstance(point, Coord):        raise Exception("no position to go to")
-        if not isinstance(steps, (int, float)): raise Exception("invalid step value")
+        run_once = True
+        while run_once and self._enabled:
+            if not isinstance(point, Coord):        raise Exception("no position to go to")
+            if not isinstance(steps, (int, float)): raise Exception("invalid step value")
 
-        # get vect & dist
-        v, dist = self.TCP.distto(point)
-        if dist > 0:
-            s0 = copy(self.state)
-            self.TCP = point
-            self.ik()
-            angles = self.state - s0
+            # get vect & dist
+            v, dist = self.TCP.distto(point)
+            if dist > 0:
+                s0 = copy(self.state)
+                self.TCP = point
+                self.ik()
+                angles = self.state - s0
 
-            # get timing
-            t = angles.max_angle() / ang_speed  # t = dist / speed
-            dt = t / steps
+                # get timing
+                t = angles.max_angle() / ang_speed  # t = dist / speed
+                dt = t / steps
 
-            for n in range(1, steps + 1):
-                # get new joint state in between 
-                progress_norm = float(n) / float(steps)
-                sn = angles * progress_norm
-                # goto new point and wait
-                self.state = copy(s0 + sn)
-                if n > 1:
-                    self.compensate(comp)
-                self.publish()
-                wait(dt)
+                for n in range(1, steps + 1):
+                    # get new joint state in between
+                    progress_norm = float(n) / float(steps)
+                    sn = angles * progress_norm
+                    # goto new point and wait
+                    self.state = copy(s0 + sn)
+                    if n > 1:
+                        self.compensate(comp)
+                    self.publish()
+                    wait(dt)
+            run_once = False
+
+    def maneuver(self, callback):
+        """ adds the possibility to break out of a running action-goal """
+        run_once = True
+        while run_once and self._enabled:
+            callback()
+            run_once = False
 
     def pickup(self):
         """picks the cube from resting pos"""
@@ -243,8 +258,8 @@ class Robot(object):
         rb.sync_p2p(rb_center + Coord(x=7, z=2), steps=75)
         wait(2.0)
         rb.gripper.close()
-        rb.hascube = True
-        ra.hascube = False
+        rb._hascube = True
+        ra._hascube = False
 
         # TODO switch compensation
         print "    > switching compensation".format(ra.id)
@@ -333,7 +348,7 @@ class Robot(object):
         """
         if turns > 2:
             raise Exception("invalid amount of turns")
-        if ra.hascube:
+        if ra._hascube:
             # TODO# Hier: Fallunterscheidungen. weniger doppelter code bzw keine roboter zuweisung im hauptprogramm nötig
             if face in ['a', 'b', 'c']:
                 print "r{} turning {}-face on r{}".format(rb.id, face, ra.id)
@@ -452,22 +467,22 @@ class Robot(object):
             raise Exception("robot gripping the cube center cannot turn")
 
     def scan_cube(ra, rb):
-        pass
         # TODO: kann weg?
+        pass
 
 
 class Gripper(object):
     """ subclass for gripper control and twist logic """
 
     def __init__(self, robot):
-        self.turns = 0  # obsolete
+        # self.turns = 0  # obsolete
         self.robot = robot
 
     def open(self):
         """ opens the gripper to 0 position. publishes to robot """
         self.robot.state.q5 = 0.0
         self.robot.publish()
-        self.robot.hascube = False
+        self.robot._hascube = False
         wait(1.0)
 
     def close(self, partial=None):
@@ -480,7 +495,7 @@ class Gripper(object):
         else:
             self.robot.state.q5 = self.robot.const.closed * partial
         self.robot.publish()
-        self.robot.hascube = True
+        self.robot._hascube = True
         wait(1.0)
 
     def twist(self, n):
@@ -510,7 +525,7 @@ class Gripper(object):
         bounds = range(-1, 2)
         if isinstance(n, int):
             if n in bounds:
-                self.turns = n  # obsolete
+                # self.turns = n  # obsolete
                 self.robot.state.q4 = n * (pi / 2) + n * pi / 180  # n times 90° +- n°
                 self.robot.publish()
                 if abs(n) < 2:

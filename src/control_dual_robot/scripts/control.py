@@ -20,6 +20,10 @@ from robot import Robot
 from misc import wait, flip_dict_values
 from joints import Joints
 
+COMMANDS = ['ping', 'home',
+            'demo_handover', 'demo_turning', 'demo_speed', 'demo_apply','demo_apply_inverse',
+            'scan', 'solve', 'apply', 'complete']
+
 
 def set_camera(position):
     cmd_list = [['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=power_line_frequency=1'],
@@ -81,19 +85,59 @@ def demo_handover(ra, rb):
     ra.putdown()
 
 
+def home(ra, rb):
+    for i in range(5):
+        ra.home()
+        rb.home()
+
+
 def analyze_solution(ra, rb, solution):
     """
     ra(Robot):test
     """
-    # blocking table
+    # turning tables
     ra_turns = {'R': 'a',
                 'D': 'b',
                 'L': 'c'}
-    rb_turns = {'F': 'a',
+    rb_turns = {'B': 'a',
                 'U': 'b',
-                'B': 'c'}
+                'F': 'c'}
+
+    picker_id = 0  # random.randint(0, 1)
+
+    # swap turing tables for all possible cases
+    # TODO (check): dict-flip still required for "swapped" cases?
+    if ra.id == 0:
+        if picker_id == 0:
+            ra_turns = {'R': 'a',
+                        'D': 'b',
+                        'L': 'c'}
+            rb_turns = {'B': 'a',
+                        'U': 'b',
+                        'F': 'c'}
+        else:
+            tmp = rb_turns
+            rb_turns = ra_turns
+            ra_turns = tmp
+    else:
+        if picker_id == 0:
+            tmp = rb_turns
+            rb_turns = ra_turns
+            ra_turns = tmp
+        else:
+            pass
+
+    # parse maneuver string
     solution = solution[:solution.find('(') - 1]  # cut postfix
     maneuvers = solution.split(' ')
+
+    # randomly pick up cube if not already
+    if not ra._hascube and not rb._hascube:
+        if picker_id == ra.id:
+            ra.pickup()
+        elif picker_id == rb.id:
+            rb.pickup()
+
     for maneuver in maneuvers:
         letter = maneuver[:1]
         n = int(maneuver[1:])
@@ -102,35 +146,33 @@ def analyze_solution(ra, rb, solution):
         if n == 3:
             n = -1
 
-        # pick up if not already
-        if not ra.hascube and not rb.hascube:
-            x = random.randint(0, 1)
-            if x == 0:
-                ra.pickup()
-                rb_turns = flip_dict_values(rb_turns)
-            else:
-                rb.pickup()
-                ra_turns = flip_dict_values(ra_turns)
-
         # check if blocked & turn face
         if letter in ra_turns.keys():
-            if rb.hascube:
+            if rb._hascube:
                 rb.handover(ra)
-            if ra.hascube:
+            if ra._hascube:
                 face = ra_turns[letter]
                 ra.turn(rb, face, n)
-        if letter in rb_turns:
-            if ra.hascube:
+        if letter in rb_turns.keys():
+            if ra._hascube:
                 ra.handover(rb)
-            if rb.hascube:
+            if rb._hascube:
                 face = rb_turns[letter]
                 rb.turn(ra, face, n)
 
     # put cube back down
-    if ra.hascube:
-        ra.putdown()
-    elif rb.hascube:
-        rb.putdown()
+    if picker_id == ra.id:
+        if ra._hascube:
+            ra.putdown()
+        elif rb._hascube:
+            rb.handover(ra)
+            ra.putdown()
+    elif picker_id == rb.id:
+        if rb._hascube:
+            rb.putdown()
+        elif ra._hascube:
+            ra.handover(rb)
+            rb.putdown()
 
 
 def take_image(rid, face):
@@ -146,8 +188,8 @@ def take_image(rid, face):
 
         ret, frame = cam.read()
         if ret:
-            #cv2.imshow("img "+face, frame)
-            #cv2.waitKey(0)
+            # cv2.imshow("img "+face, frame)
+            # cv2.waitKey(0)
             # pre cut image & correct rotation
             if face in ['R', 'L', 'F', 'B']:
                 frame = frame[130:380, 200:460, :]
@@ -252,45 +294,73 @@ class Control(object):
         print "1"
         print "done. PowerOff the robots if any robot did not reach home position!"
 
-        self.server = actionlib.SimpleActionServer('control', ControlAction, self.execute, False)
+        self.server = actionlib.SimpleActionServer(name='control_server',
+                                                   ActionSpec=ControlAction,
+                                                   execute_cb=self.execute,
+                                                   auto_start=False)
+        self.server.register_preempt_callback(self.abort)
         self.server.start()
         self.solver_resp = SolverResponse()
 
     def execute(self, goal):
-        print 'starting. command: ' + str(goal.input)
+        if self.server.is_preempt_requested():
+            self.server.set_preempted()
+            return
 
-        if str(goal.input) == 'demo_handover':
-            demo_handover(self.r0, self.r1)
+        print(goal)
+        g = str(goal.input)
+        if g not in COMMANDS:
+            print('invalid goal received.')
+            self.server.set_aborted()
+            return
+        else:
+            print 'starting. command: ' + str(goal.input)
+            self.r0._enabled = True
+            self.r1._enabled = True
+            if g == 'demo_handover':
+                demo_handover(self.r0, self.r1)
 
-        elif str(goal.input) == 'demo_turning':
-            demo_turning(self.r0, self.r1)
+            elif g == 'home':
+                home(self.r0, self.r1)
 
-        elif str(goal.input) == 'demo_speed':
-            print 'Warning, make way. Robots may move outside base plate!'
-            demo_speed(self.r0, self.r1)
+            elif g == 'demo_turning':
+                demo_turning(self.r0, self.r1)
 
-        elif str(goal.input) == 'scan':
-            pick_scan_cube(self.r0, self.r1)
+            elif g == 'demo_speed':
+                print 'Warning, make way. Robots may move outside base plate!'
+                demo_speed(self.r0, self.r1)
 
-        elif str(goal.input) == 'solve':
-            self.solver_resp = process_images_and_get_solution()
+            elif g == 'scan':
+                pick_scan_cube(self.r0, self.r1)
 
-        elif str(goal.input) == 'demo_apply':
-            solution = "U1 R2 F3 D3 L2 B1 (20 moves)"  # demo
-            analyze_solution(self.r0, self.r1, solution)
+            elif g == 'solve':
+                self.solver_resp = process_images_and_get_solution()
 
-        elif str(goal.input) == 'apply':
-            analyze_solution(self.r0, self.r1, self.solver_resp.solution)
+            elif g == 'demo_apply':
+                solution = "F2 D1 L2 D1 U1 (5 move)"  # demo
+                analyze_solution(self.r0, self.r1, solution)
 
-        elif str(goal.input) == 'complete':
-            pick_scan_cube(self.r0, self.r1)
-            movecount, solution = process_images_and_get_solution()
-            analyze_solution(self.r0, self.r1, solution)
+            elif g == 'demo_apply_inverse':
+                solution = "U3 D3 L2 D3 F2 (5 move)"  # demo
+                analyze_solution(self.r0, self.r1, solution)
+
+            elif g == 'apply':
+                analyze_solution(self.r0, self.r1, self.solver_resp.solution)
+
+            elif g == 'complete':
+                # complete solvig cycle
+                pick_scan_cube(self.r0, self.r1)
+                movecount, solution = process_images_and_get_solution()
+                analyze_solution(self.r0, self.r1, solution)
 
         self.server.set_succeeded()
         print 'done. returning home'
         self.r0.home()
         self.r1.home()
+
+    def abort(self):
+        self.r0._enabled = False
+        self.r1._enabled = False
 
 
 if __name__ == '__main__':

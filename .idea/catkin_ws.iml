@@ -2,8 +2,25 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/arbotix_ros" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/common_msgs" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/control_dual_robot" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/dynamixel_motor" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/phantomx_reactor_arm" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/twophase_solver_ros" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/src/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/src/.vscode" />
+      <excludeFolder url="file://$MODULE_DIR$/.vscode" />
+      <excludeFolder url="file://$MODULE_DIR$/devel/lib/python2.7" />
     </content>
+    <content url="file://$MODULE_DIR$/devel/lib/python2.7/dist-packages">
+      <excludeFolder url="file://$MODULE_DIR$/devel/lib/python2.7/dist-packages/arbotix_python" />
+      <excludeFolder url="file://$MODULE_DIR$/devel/lib/python2.7/dist-packages/arbotix_sensors" />
+      <excludeFolder url="file://$MODULE_DIR$/devel/lib/python2.7/dist-packages/dynamixel_driver" />
+    </content>
+    <content url="file:///opt/ros/melodic/lib/python2.7/dist-packages" />
     <orderEntry type="jdk" jdkName="Python 2.7 (masterprojekt)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
