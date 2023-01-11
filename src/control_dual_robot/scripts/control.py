@@ -87,11 +87,15 @@ def demo_handover(ra, rb):
 
 def home(ra, rb):
     for i in range(5):
+        print('send home cmd to both robots')
         ra.home()
         rb.home()
 
 
 def analyze_solution(ra, rb, solution):
+    if solution is None or '(0f)' in solution:
+        print('will not execute any maneuvers. solution is {}'.format(solution))
+        return False
     """
     ra(Robot):test
     """
@@ -128,8 +132,11 @@ def analyze_solution(ra, rb, solution):
             pass
 
     # parse maneuver string
-    solution = solution[:solution.find('(') - 1]  # cut postfix
-    maneuvers = solution.split(' ')
+    try:
+        solution = solution[:solution.find('(') - 1]  # cut postfix
+        maneuvers = solution.split(' ')
+    except ValueError as e:
+        print('[ERROR] problem with solution string {}'.format(solution))
 
     # randomly pick up cube if not already
     if not ra._hascube and not rb._hascube:
@@ -301,6 +308,7 @@ class Control(object):
         self.server.register_preempt_callback(self.abort)
         self.server.start()
         self.solver_resp = SolverResponse()
+        self.solution = None
 
     def execute(self, goal):
         if self.server.is_preempt_requested():
@@ -335,6 +343,7 @@ class Control(object):
 
             elif g == 'solve':
                 self.solver_resp = process_images_and_get_solution()
+                self.solution = self.solver_resp.solution
 
             elif g == 'demo_apply':
                 solution = "F2 D1 L2 D1 U1 (5 move)"  # demo
@@ -345,7 +354,7 @@ class Control(object):
                 analyze_solution(self.r0, self.r1, solution)
 
             elif g == 'apply':
-                analyze_solution(self.r0, self.r1, self.solver_resp.solution)
+                analyze_solution(self.r0, self.r1, self.solution)
 
             elif g == 'complete':
                 # complete solvig cycle

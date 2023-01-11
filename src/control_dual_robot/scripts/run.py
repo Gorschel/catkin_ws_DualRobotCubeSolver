@@ -20,7 +20,7 @@ class RobotGUI(QMainWindow):
     def __init__ui(self):
         widget = QWidget(self)
         layout = QVBoxLayout()
-        lbl_info = QLabel('chose a goal to execute')
+        lbl_info = QLabel('chose a action to execute')
 
         goal_picker = QComboBox()
         goal_picker.addItems(self.goal_list)
