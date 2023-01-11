@@ -7,6 +7,7 @@ import random
 from math import pi
 import subprocess
 import cv2
+import re
 
 # ros imports
 import rospy
@@ -93,12 +94,11 @@ def home(ra, rb):
 
 
 def analyze_solution(ra, rb, solution):
+    print('solution is {}'.format(solution))
     if solution is None or '(0f)' in solution:
-        print('will not execute any maneuvers. solution is {}'.format(solution))
+        print('will not execute any maneuvers.')
         return False
-    """
-    ra(Robot):test
-    """
+
     # turning tables
     ra_turns = {'R': 'a',
                 'D': 'b',
@@ -132,11 +132,13 @@ def analyze_solution(ra, rb, solution):
             pass
 
     # parse maneuver string
-    try:
-        solution = solution[:solution.find('(') - 1]  # cut postfix
-        maneuvers = solution.split(' ')
-    except ValueError as e:
-        print('[ERROR] problem with solution string {}'.format(solution))
+    pairs = re.findall(r'([A-Za-z]+)(\d+)', solution)
+
+    for i, item in enumerate(pairs):
+        letter, n = item
+        n = -1 if int(n) > 2 else int(n)
+        new = (letter, n)
+        pairs[i] = new
 
     # randomly pick up cube if not already
     if not ra._hascube and not rb._hascube:
@@ -144,15 +146,8 @@ def analyze_solution(ra, rb, solution):
             ra.pickup()
         elif picker_id == rb.id:
             rb.pickup()
-
-    for maneuver in maneuvers:
-        letter = maneuver[:1]
-        n = int(maneuver[1:])
-
-        # 3 clockwise turns are equal to 1 counter-clockwise turn
-        if n == 3:
-            n = -1
-
+    for i, (letter, n) in enumerate(pairs):
+        print('##### turn {} / {} ##### turning face {} x {}*90° #####'.format(i + 1, len(pairs), letter, int(n)))
         # check if blocked & turn face
         if letter in ra_turns.keys():
             if rb._hascube:
@@ -272,8 +267,11 @@ def pick_scan_cube(ra, rb):
     # second half
     scan_half_cube(rb, ra)
 
-    rb.putdown()
+    # hand over again to make sure solution letters are in sync with cube orientation
+    rb.handover(ra)
     rb.home()
+    ra.putdown()
+    ra.home()
 
 
 class Control(object):
@@ -359,8 +357,8 @@ class Control(object):
             elif g == 'complete':
                 # complete solvig cycle
                 pick_scan_cube(self.r0, self.r1)
-                movecount, solution = process_images_and_get_solution()
-                analyze_solution(self.r0, self.r1, solution)
+                self.solver_resp = process_images_and_get_solution()
+                analyze_solution(self.r0, self.r1, self.solver_resp.solution)
 
         self.server.set_succeeded()
         print 'done. returning home'
