@@ -132,7 +132,7 @@ def analyze_solution(ra, rb, solution):
             pass
 
     # parse maneuver string
-    pairs = re.findall(r'([A-Za-z]+)(\d+)', solution)
+    pairs = re.findall(r'([A-Z]+)(\d+)', solution)
 
     for i, item in enumerate(pairs):
         letter, n = item
