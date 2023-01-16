@@ -15,14 +15,19 @@ import rospkg
 import actionlib
 from control_dual_robot.msg import ControlAction
 from twophase_solver_ros.srv import Solver, SolverResponse
+from control_dual_robot.msg import ControlAction, ControlGoal
 
 # local imports
 from robot import Robot
 from misc import wait, flip_dict_values
 from joints import Joints
+# from run import RobotGUI
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
+from qtpy.QtWidgets import QApplication, QLabel, QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow, \
+    QPushButton, QComboBox
 
 COMMANDS = ['ping', 'home',
-            'demo_handover', 'demo_turning', 'demo_speed', 'demo_apply','demo_apply_inverse',
+            'demo_handover', 'demo_turning', 'demo_speed', 'demo_apply', 'demo_apply_inverse',
             'scan', 'solve', 'apply', 'complete']
 
 
@@ -279,6 +284,7 @@ class Control(object):
         """
         starts the control node & moves both robots to home position
         """
+        self.server = None
         rospy.init_node('control')
 
         self.r0 = Robot(0)
@@ -299,20 +305,71 @@ class Control(object):
         print "1"
         print "done. PowerOff the robots if any robot did not reach home position!"
 
+        """
         self.server = actionlib.SimpleActionServer(name='control_server',
                                                    ActionSpec=ControlAction,
-                                                   execute_cb=self.execute,
+                                                   execute_cb=self.goal_received,
                                                    auto_start=False)
         self.server.register_preempt_callback(self.abort)
         self.server.start()
+        """
         self.solver_resp = SolverResponse()
         self.solution = None
+        app = QApplication([])
+        gui = RobotGUI(self)
+        gui.show()
+        app.exec_()
 
-    def execute(self, goal):
+
+    #@pyqtSlot(str)
+    def execute_command(self, g):
+        print 'starting. command: ' + g
+        self.r0._enabled = True
+        self.r1._enabled = True
+        if g == 'demo_handover':
+            demo_handover(self.r0, self.r1)
+
+        elif g == 'home':
+            home(self.r0, self.r1)
+
+        elif g == 'demo_turning':
+            demo_turning(self.r0, self.r1)
+
+        elif g == 'demo_speed':
+            print 'Warning, make way. Robots may move outside base plate!'
+            demo_speed(self.r0, self.r1)
+
+        elif g == 'scan':
+            pick_scan_cube(self.r0, self.r1)
+
+        elif g == 'solve':
+            self.solver_resp = process_images_and_get_solution()
+            try:
+                self.solution = self.solver_resp.solution
+            except AttributeError as e:
+                print 'solver did not deliver a SolverResponse'
+
+        elif g == 'demo_apply':
+            solution = "F2 D1 L2 D1 U1 (5 move)"  # demo
+            analyze_solution(self.r0, self.r1, solution)
+
+        elif g == 'demo_apply_inverse':
+            solution = "U3 D3 L2 D3 F2 (5 move)"  # demo
+            analyze_solution(self.r0, self.r1, solution)
+
+        elif g == 'apply':
+            analyze_solution(self.r0, self.r1, self.solution)
+
+        elif g == 'complete':
+            # complete solvig cycle
+            pick_scan_cube(self.r0, self.r1)
+            self.solver_resp = process_images_and_get_solution()
+            analyze_solution(self.r0, self.r1, self.solver_resp.solution)
+
+    def goal_received(self, goal):
         if self.server.is_preempt_requested():
             self.server.set_preempted()
             return
-
         print(goal)
         g = str(goal.input)
         if g not in COMMANDS:
@@ -320,45 +377,7 @@ class Control(object):
             self.server.set_aborted()
             return
         else:
-            print 'starting. command: ' + str(goal.input)
-            self.r0._enabled = True
-            self.r1._enabled = True
-            if g == 'demo_handover':
-                demo_handover(self.r0, self.r1)
-
-            elif g == 'home':
-                home(self.r0, self.r1)
-
-            elif g == 'demo_turning':
-                demo_turning(self.r0, self.r1)
-
-            elif g == 'demo_speed':
-                print 'Warning, make way. Robots may move outside base plate!'
-                demo_speed(self.r0, self.r1)
-
-            elif g == 'scan':
-                pick_scan_cube(self.r0, self.r1)
-
-            elif g == 'solve':
-                self.solver_resp = process_images_and_get_solution()
-                self.solution = self.solver_resp.solution
-
-            elif g == 'demo_apply':
-                solution = "F2 D1 L2 D1 U1 (5 move)"  # demo
-                analyze_solution(self.r0, self.r1, solution)
-
-            elif g == 'demo_apply_inverse':
-                solution = "U3 D3 L2 D3 F2 (5 move)"  # demo
-                analyze_solution(self.r0, self.r1, solution)
-
-            elif g == 'apply':
-                analyze_solution(self.r0, self.r1, self.solution)
-
-            elif g == 'complete':
-                # complete solvig cycle
-                pick_scan_cube(self.r0, self.r1)
-                self.solver_resp = process_images_and_get_solution()
-                analyze_solution(self.r0, self.r1, self.solver_resp.solution)
+            self.execute_command(g)
 
         self.server.set_succeeded()
         print 'done. returning home'
@@ -368,6 +387,74 @@ class Control(object):
     def abort(self):
         self.r0._enabled = False
         self.r1._enabled = False
+
+
+class RobotGUI(QMainWindow):
+    def __init__(self, parent):
+        super(RobotGUI, self).__init__()
+        self.parent = parent
+        self.client = None
+        self.goal = None
+        self.goal_list = COMMANDS
+
+        self.__init__ui()
+        # self.__init__client()
+
+    def __init__ui(self):
+        widget = QWidget(self)
+        layout = QVBoxLayout()
+        lbl_info = QLabel('chose a action to execute')
+        #self.windowIcon(QStyle.SP_DialogOpenButton)
+
+        goal_picker = QComboBox()
+        goal_picker.addItems(self.goal_list)
+
+        self.btn_send = QPushButton('send goal')
+        self.btn_send.clicked.connect(lambda test: self.parent.execute_command(goal_picker.currentText()))
+        # self.btn_send.clicked.connect(lambda test: self.set_send_goal(goal_picker.currentText()))
+        self.btn_abort = QPushButton('abort goal')
+        self.btn_abort.clicked.connect(self.abort_goal)
+
+        layout.addWidget(lbl_info)
+        layout.addWidget(goal_picker)
+        layout.addWidget(self.btn_send)
+        layout.addWidget(self.btn_abort)
+
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+
+    def __init__client(self):
+        try:
+            rospy.init_node('control_client')
+            self.client = actionlib.SimpleActionClient('control_server', ControlAction)
+            if self.client.wait_for_server():
+                return True
+            else:
+                print ('ros action server timeout')
+                return False
+        except Exception as e:
+            print("Exception @ Node initialisation: ", e)
+            return False
+
+    def set_send_goal(self, goal_str="demo_apply", recursion=False):
+        if self.client is not None:
+            try:
+                goal = ControlGoal(goal_str)
+                self.client.send_goal(goal)
+                self.client.wait_for_result(rospy.Duration.from_sec(9000.0))
+            except Exception as e:
+                print("Exception @ sending goal (\'" + str(self.goal) + "\') : ", e)
+        else:
+            if self.__init__client() and not recursion:
+                self.set_send_goal(goal_str, recursion=True)
+            else:
+                print("Client not initialized. Goal could not be set")
+
+    def abort_goal(self):
+        try:
+            self.client.cancel_goal()
+        except Exception as e:
+            print(e)
 
 
 if __name__ == '__main__':

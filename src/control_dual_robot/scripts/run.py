@@ -8,14 +8,15 @@ from qtpy.QtWidgets import QApplication, QLabel, QWidget, QHBoxLayout, QVBoxLayo
 
 
 class RobotGUI(QMainWindow):
-    def __init__(self):
+    def __init__(self, parent):
         super(RobotGUI, self).__init__()
+        self.parent = parent
         self.client = None
         self.goal = None
         self.goal_list = COMMANDS
 
         self.__init__ui()
-        self.__init__client()
+        # self.__init__client()
 
     def __init__ui(self):
         widget = QWidget(self)
@@ -26,7 +27,8 @@ class RobotGUI(QMainWindow):
         goal_picker.addItems(self.goal_list)
 
         self.btn_send = QPushButton('send goal')
-        self.btn_send.clicked.connect(lambda test: self.set_send_goal(goal_picker.currentText()))
+        self.btn_send.clicked.connect(lambda test: self.parent.execute_command(goal_picker.currentText()))
+        #self.btn_send.clicked.connect(lambda test: self.set_send_goal(goal_picker.currentText()))
         self.btn_abort = QPushButton('abort goal')
         self.btn_abort.clicked.connect(self.abort_goal)
 
@@ -50,6 +52,7 @@ class RobotGUI(QMainWindow):
         except Exception as e:
             print("Exception @ Node initialisation: ", e)
             return False
+
 
     def set_send_goal(self, goal_str="demo_apply", recursion=False):
         if self.client is not None:
