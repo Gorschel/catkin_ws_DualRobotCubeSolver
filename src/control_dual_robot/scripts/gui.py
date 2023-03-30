@@ -1,16 +1,15 @@
 import rospy
 import actionlib
 from control_dual_robot.msg import ControlAction, ControlGoal
-
-from control import COMMANDS
-from qtpy.QtWidgets import QApplication, QLabel, QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow, \
-    QPushButton, QComboBox
-
+from qtpy.QtWidgets import QLabel, QWidget, QVBoxLayout, QMainWindow, QPushButton, QComboBox
+from misc import COMMANDS
 
 class RobotGUI(QMainWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, r0, r1):
         super(RobotGUI, self).__init__()
         self.parent = parent
+        self.r0 = r0
+        self.r1 = r1
         self.client = None
         self.goal = None
         self.goal_list = COMMANDS
@@ -22,13 +21,14 @@ class RobotGUI(QMainWindow):
         widget = QWidget(self)
         layout = QVBoxLayout()
         lbl_info = QLabel('chose a action to execute')
+        #self.windowIcon(QStyle.SP_DialogOpenButton)
 
         goal_picker = QComboBox()
         goal_picker.addItems(self.goal_list)
 
         self.btn_send = QPushButton('send goal')
         self.btn_send.clicked.connect(lambda test: self.parent.execute_command(goal_picker.currentText()))
-        #self.btn_send.clicked.connect(lambda test: self.set_send_goal(goal_picker.currentText()))
+        # self.btn_send.clicked.connect(lambda test: self.set_send_goal(goal_picker.currentText()))
         self.btn_abort = QPushButton('abort goal')
         self.btn_abort.clicked.connect(self.abort_goal)
 
@@ -53,7 +53,6 @@ class RobotGUI(QMainWindow):
             print("Exception @ Node initialisation: ", e)
             return False
 
-
     def set_send_goal(self, goal_str="demo_apply", recursion=False):
         if self.client is not None:
             try:
@@ -70,13 +69,7 @@ class RobotGUI(QMainWindow):
 
     def abort_goal(self):
         try:
-            self.client.cancel_goal()
+            self.r0._enabled = False
+            self.r1._enabled = False
         except Exception as e:
-            print(e)
-
-
-if __name__ == '__main__':
-    app = QApplication([])
-    g = RobotGUI()
-    g.show()
-    app.exec_()
+            print('abortion failed. ', e)

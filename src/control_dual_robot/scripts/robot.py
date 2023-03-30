@@ -43,16 +43,6 @@ class Robot(object):
             elif id is 1:
                 self.q0_offset = -0.7 * pi / 180
 
-            """
-            self.p2p(self.pos.home)
-
-            # hotfix: q0 not actuated
-            self.state.q0 = pi*5.0/180
-            self.publish()
-            self.state.q0 = 0.0
-            self.publish()
-            #"""
-
     def publish(self):
         if self._enabled:
             self.__pub.publish(self.state)
@@ -82,10 +72,10 @@ class Robot(object):
             raise Exception("! Point not reachable with given orientation !")
 
         # get angles [RAD]
-        alpha = cossatz(abs(P1P3), self.const.d2, self.const.d3)
-        beta = cossatz(self.const.d3, self.const.d2, abs(P1P3))
-        gamma = cossatz(abs(P1P3), self.const.d3, self.const.d2)
-        phi = cossatz(abs(OP1), abs(P1P3), abs(OP3))
+        alpha = law_of_cosine(abs(P1P3), self.const.d2, self.const.d3)
+        beta = law_of_cosine(self.const.d3, self.const.d2, abs(P1P3))
+        gamma = law_of_cosine(abs(P1P3), self.const.d3, self.const.d2)
+        phi = law_of_cosine(abs(OP1), abs(P1P3), abs(OP3))
         if OP3.r < 0.0: phi = 2 * pi - phi  # case for phi > pi (point close to base)
 
         # get joint values [RAD]

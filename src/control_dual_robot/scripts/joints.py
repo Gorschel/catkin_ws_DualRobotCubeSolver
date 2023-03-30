@@ -3,6 +3,7 @@
 
 import rospy
 from std_msgs.msg import Float64
+from sensor_msgs.msg import JointState
 
 from consts import HardwareLimits
 
@@ -72,19 +73,31 @@ class Joints(object):
 class JointPublisher(object):
     """ creates set of controllable joint publishers """
 
-    def __init__(self, id):
-        self.j0 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_yaw_joint/command',
+    def __init__(self, robot_id):
+        self.j0 = rospy.Publisher('/phantomx_reactor_controller_' + str(robot_id) + '/shoulder_yaw_joint/command',
                                   Float64, queue_size=1)
-        self.j1 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/shoulder_pitch_joint/command',
+        self.j1 = rospy.Publisher('/phantomx_reactor_controller_' + str(robot_id) + '/shoulder_pitch_joint/command',
                                   Float64, queue_size=1)
-        self.j2 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/elbow_pitch_joint/command',
+        self.j2 = rospy.Publisher('/phantomx_reactor_controller_' + str(robot_id) + '/elbow_pitch_joint/command',
                                   Float64, queue_size=1)
-        self.j3 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/wrist_pitch_joint/command',
+        self.j3 = rospy.Publisher('/phantomx_reactor_controller_' + str(robot_id) + '/wrist_pitch_joint/command',
                                   Float64, queue_size=1)
-        self.j4 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/wrist_roll_joint/command',
+        self.j4 = rospy.Publisher('/phantomx_reactor_controller_' + str(robot_id) + '/wrist_roll_joint/command',
                                   Float64, queue_size=1)
-        self.j5 = rospy.Publisher('/phantomx_reactor_controller_' + str(id) + '/gripper_revolute_joint/command',
+        self.j5 = rospy.Publisher('/phantomx_reactor_controller_' + str(robot_id) + '/gripper_revolute_joint/command',
                                   Float64, queue_size=1)
+
+        self.jointstates = rospy.Subscriber(name='/joint_States_' + str(robot_id),
+                                            data_class=JointState,
+                                            queue_size=1,
+                                            callback=self.handle_js)
+        self.names = ['elbow_pitch_mimic_joint', 'shoulder_pitch_joint', 'wrist_pitch_joint', 'wrist_roll_joint',
+                      'shoulder_yaw_joint', 'elbow_pitch_joint', 'gripper_revolute_joint', 'shoulder_pitch_mimic_joint']
+    def handle_js(self, data):
+        #
+        print(data.position)
+
+        # self.jo_is = None
 
     def publish(self, joints):
         """ checks for hardware limits and publishes all joint values """

@@ -1,3 +1,11 @@
+# Requirements
+
+- v4l2 (v4l-utils)
+- ROS melodic
+- python 2.7
+  - cv2
+  - numpy
+
 # How to run
 1. Preparations
    * use terminal commands from the repository's base directory `catkin_ws`

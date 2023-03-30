@@ -21,29 +21,26 @@ from control_dual_robot.msg import ControlAction, ControlGoal
 from robot import Robot
 from misc import wait, flip_dict_values
 from joints import Joints
-# from run import RobotGUI
+from gui import RobotGUI
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from qtpy.QtWidgets import QApplication, QLabel, QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow, \
     QPushButton, QComboBox
-
-COMMANDS = ['ping', 'home',
-            'demo_handover', 'demo_turning', 'demo_speed', 'demo_apply', 'demo_apply_inverse',
-            'scan', 'solve', 'apply', 'complete']
+from misc import COMMANDS
 
 
 def set_camera(position):
     cmd_list = [['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=power_line_frequency=1'],
-                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=saturation=220'],
-                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=sharpness=128'],
+                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=saturation=100'],
+                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=sharpness=150'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_auto=1'],
-                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_absolute=50'],
+                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_absolute=10'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=pan_absolute=-3600'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=focus_auto=0']]
 
     if position in ['R', 'L', 'F', 'B']:
-        cmd_list.append(['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=focus_absolute=10'])
+        cmd_list.append(['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=focus_absolute=11'])
     elif position in ['D', 'U']:
-        cmd_list.append(['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=focus_absolute=15'])
+        cmd_list.append(['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=focus_absolute=18'])
     else:
         raise Exception("invalid face param")
 
@@ -190,35 +187,18 @@ def take_image(rid, face):
     # cam.set(cv2.CAP_PROP_EXPOSURE, 0.1)
     if cam.isOpened():
         print "    > cam open"
-
         set_camera(face)
 
         ret, frame = cam.read()
         if ret:
-            # cv2.imshow("img "+face, frame)
-            # cv2.waitKey(0)
             # pre cut image & correct rotation
             if face in ['R', 'L', 'F', 'B']:
-                frame = frame[130:380, 200:460, :]
+                #frame = frame[130:380, 200:460, :]
                 frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
             elif face in ['D', 'U']:
-                frame = frame[120:430, 180:490, :]
+                #frame = frame[120:430, 180:490, :]
                 if face == 'U':
                     frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-            """
-            if face == 'U':
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-            elif face == 'R':
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-            elif face == 'F':
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-            elif face == 'D':
-                pass
-            elif face == 'L':
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-            elif face == 'B':
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-            """
             rospack = rospkg.RosPack()
             fpath = rospack.get_path('twophase_solver_ros') + '/images/scan_' + 'Color.' + face + '.png'
             print "    > saving image to {}".format(fpath)
@@ -288,24 +268,29 @@ class Control(object):
         rospy.init_node('control')
 
         self.r0 = Robot(0)
+        wait(0.5)
         self.r1 = Robot(1)
 
         print "ensuring home positions are reached.."
         self.r0.home()  # p2p(self.r0.pos.home)
+        wait(0.5)
         self.r1.home()  # p2p(self.r1.pos.home)
         wait(1.0)
         print "3"
         self.r0.home()  # p2p(self.r0.pos.home)
+        wait(0.5)
         self.r1.home()  # p2p(self.r1.pos.home)
         wait(1.0)
         print "2"
         self.r0.home()  # p2p(self.r0.pos.home)
+        wait(0.5)
         self.r1.home()  # p2p(self.r1.pos.home)
         wait(1.0)
         print "1"
         print "done. PowerOff the robots if any robot did not reach home position!"
 
         """
+        old server code. not a good idea, because simple action server does not easily support goal cancelling
         self.server = actionlib.SimpleActionServer(name='control_server',
                                                    ActionSpec=ControlAction,
                                                    execute_cb=self.goal_received,
@@ -316,16 +301,18 @@ class Control(object):
         self.solver_resp = SolverResponse()
         self.solution = None
         app = QApplication([])
-        gui = RobotGUI(self)
+        gui = RobotGUI(self, self.r0, self.r1)
         gui.show()
         app.exec_()
 
-
-    #@pyqtSlot(str)
     def execute_command(self, g):
         print 'starting. command: ' + g
-        self.r0._enabled = True
-        self.r1._enabled = True
+        if g in COMMANDS:
+            self.r0._enabled = True
+            self.r1._enabled = True
+        else:
+            raise NotImplementedError("command not found in COMMAND list")
+            return
         if g == 'demo_handover':
             demo_handover(self.r0, self.r1)
 
@@ -367,9 +354,6 @@ class Control(object):
             analyze_solution(self.r0, self.r1, self.solver_resp.solution)
 
     def goal_received(self, goal):
-        if self.server.is_preempt_requested():
-            self.server.set_preempted()
-            return
         print(goal)
         g = str(goal.input)
         if g not in COMMANDS:
@@ -389,72 +373,7 @@ class Control(object):
         self.r1._enabled = False
 
 
-class RobotGUI(QMainWindow):
-    def __init__(self, parent):
-        super(RobotGUI, self).__init__()
-        self.parent = parent
-        self.client = None
-        self.goal = None
-        self.goal_list = COMMANDS
 
-        self.__init__ui()
-        # self.__init__client()
-
-    def __init__ui(self):
-        widget = QWidget(self)
-        layout = QVBoxLayout()
-        lbl_info = QLabel('chose a action to execute')
-        #self.windowIcon(QStyle.SP_DialogOpenButton)
-
-        goal_picker = QComboBox()
-        goal_picker.addItems(self.goal_list)
-
-        self.btn_send = QPushButton('send goal')
-        self.btn_send.clicked.connect(lambda test: self.parent.execute_command(goal_picker.currentText()))
-        # self.btn_send.clicked.connect(lambda test: self.set_send_goal(goal_picker.currentText()))
-        self.btn_abort = QPushButton('abort goal')
-        self.btn_abort.clicked.connect(self.abort_goal)
-
-        layout.addWidget(lbl_info)
-        layout.addWidget(goal_picker)
-        layout.addWidget(self.btn_send)
-        layout.addWidget(self.btn_abort)
-
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-
-    def __init__client(self):
-        try:
-            rospy.init_node('control_client')
-            self.client = actionlib.SimpleActionClient('control_server', ControlAction)
-            if self.client.wait_for_server():
-                return True
-            else:
-                print ('ros action server timeout')
-                return False
-        except Exception as e:
-            print("Exception @ Node initialisation: ", e)
-            return False
-
-    def set_send_goal(self, goal_str="demo_apply", recursion=False):
-        if self.client is not None:
-            try:
-                goal = ControlGoal(goal_str)
-                self.client.send_goal(goal)
-                self.client.wait_for_result(rospy.Duration.from_sec(9000.0))
-            except Exception as e:
-                print("Exception @ sending goal (\'" + str(self.goal) + "\') : ", e)
-        else:
-            if self.__init__client() and not recursion:
-                self.set_send_goal(goal_str, recursion=True)
-            else:
-                print("Client not initialized. Goal could not be set")
-
-    def abort_goal(self):
-        try:
-            self.client.cancel_goal()
-        except Exception as e:
-            print(e)
 
 
 if __name__ == '__main__':
