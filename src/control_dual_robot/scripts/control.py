@@ -2,38 +2,32 @@
 # -*- coding: utf-8 -*-
 # license removed for brevity
 
-# general imports
-import random
-from math import pi
-import subprocess
-import cv2
 import re
+import subprocess
+# general imports
+from math import pi
+
+import cv2
+import rospkg
+from qtpy.QtWidgets import QApplication
 
 # ros imports
 import rospy
-import rospkg
-import actionlib
-from control_dual_robot.msg import ControlAction
-from twophase_solver_ros.srv import Solver, SolverResponse
-from control_dual_robot.msg import ControlAction, ControlGoal
-
+from gui import RobotGUI
+from joints import Joints
+from misc import COMMANDS
+from misc import wait
 # local imports
 from robot import Robot
-from misc import wait, flip_dict_values
-from joints import Joints
-from gui import RobotGUI
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from qtpy.QtWidgets import QApplication, QLabel, QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow, \
-    QPushButton, QComboBox
-from misc import COMMANDS
+from twophase_solver_ros.srv import Solver, SolverResponse
 
 
-def set_camera(position):
+def set_camera(position, exp):
     cmd_list = [['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=power_line_frequency=1'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=saturation=100'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=sharpness=150'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_auto=1'],
-                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_absolute=10'],
+                ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_absolute={}'.format(exp)],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=pan_absolute=-3600'],
                 ['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=focus_auto=0']]
 
@@ -45,8 +39,23 @@ def set_camera(position):
         raise Exception("invalid face param")
 
     for cmd in cmd_list:
-        subprocess.call(cmd)
+        try:
+            subprocess.call(cmd)
+        except Exception as e:
+            print e
     wait(1.0)
+
+
+def get_auto_exposure():
+    try:
+        subprocess.call(['v4l2-ctl', '-d', '/dev/video0', '--set-ctrl=exposure_auto=3'])
+        wait(3)
+        cmd = subprocess.Popen(['v4l2-ctl', '-d', '/dev/video0', '--get-ctrl=exposure_absolute'],
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        exp = int(cmd.stdout.read().split(':')[1][:-1])
+    except Exception as e:
+        print e
+    return exp
 
 
 def process_images_and_get_solution():
@@ -98,7 +107,7 @@ def home(ra, rb):
 def analyze_solution(ra, rb, solution):
     print('solution is {}'.format(solution))
     if solution is None or '(0f)' in solution:
-        print('will not execute any maneuvers.')
+        print('will not execute any maneuvers. Cube seems to be solved already.')
         return False
 
     # turning tables
@@ -112,7 +121,6 @@ def analyze_solution(ra, rb, solution):
     picker_id = 0  # random.randint(0, 1)
 
     # swap turing tables for all possible cases
-    # TODO (check): dict-flip still required for "swapped" cases?
     if ra.id == 0:
         if picker_id == 0:
             ra_turns = {'R': 'a',
@@ -179,7 +187,7 @@ def analyze_solution(ra, rb, solution):
             rb.putdown()
 
 
-def take_image(rid, face):
+def take_image(rid, face, exp):
     print "Taking image of {} Face".format(face)
     cam = cv2.VideoCapture(0)
     wait(0.5)
@@ -187,8 +195,7 @@ def take_image(rid, face):
     # cam.set(cv2.CAP_PROP_EXPOSURE, 0.1)
     if cam.isOpened():
         print "    > cam open"
-        set_camera(face)
-
+        set_camera(face, exp)
         ret, frame = cam.read()
         if ret:
             # pre cut image & correct rotation
@@ -211,7 +218,7 @@ def take_image(rid, face):
         print("! could not open camera")
 
 
-def scan_half_cube(r, other):
+def scan_half_cube(r, other, exp):
     # scanning poses (joint values)
     scan_a = Joints(0.0, -35 * pi / 180, -5 * pi / 180, 35 * pi / 180, 0.0, 0.0)
     scan_b = Joints(0.0, 10.0 * pi / 180, -5.0 * pi / 180, -98 * pi / 180, 0.0, 0.0)
@@ -224,16 +231,16 @@ def scan_half_cube(r, other):
 
     # begin scanning
     r.angular(scan_a)
-    take_image(r.id, face=a)
+    take_image(r.id, face=a, exp=exp)
 
     r.angular(scan_b)
     wait(1)
-    take_image(r.id, face=b)
+    take_image(r.id, face=b, exp=exp)
 
     r.flip(other)  # flip cube 180° (to scan D side) # ! 2. iteration: timing fails on right side (r1)
 
     r.angular(scan_a)
-    take_image(r.id, face=c)
+    take_image(r.id, face=c, exp=exp)
 
 
 def pick_scan_cube(ra, rb):
@@ -241,8 +248,10 @@ def pick_scan_cube(ra, rb):
     ra.pickup()
     rb.home()
 
+    exp = get_auto_exposure()
+
     # scan first 3 faces
-    scan_half_cube(ra, rb)
+    scan_half_cube(ra, rb, exp)
     ra.p2p(ra.pos.home)
 
     # transfer
@@ -250,7 +259,7 @@ def pick_scan_cube(ra, rb):
     ra.home()
 
     # second half
-    scan_half_cube(rb, ra)
+    scan_half_cube(rb, ra, exp)
 
     # hand over again to make sure solution letters are in sync with cube orientation
     rb.handover(ra)
@@ -270,6 +279,11 @@ class Control(object):
         self.r0 = Robot(0)
         wait(0.5)
         self.r1 = Robot(1)
+
+        # TODO (main): handover
+        #   a->b . a zu niedrig (winkel)
+        #   a turn nicht genau 90°
+        #   c turn weiter rein und vor dem greifen warten
 
         print "ensuring home positions are reached.."
         self.r0.home()  # p2p(self.r0.pos.home)
@@ -312,7 +326,6 @@ class Control(object):
             self.r1._enabled = True
         else:
             raise NotImplementedError("command not found in COMMAND list")
-            return
         if g == 'demo_handover':
             demo_handover(self.r0, self.r1)
 
@@ -337,11 +350,11 @@ class Control(object):
                 print 'solver did not deliver a SolverResponse'
 
         elif g == 'demo_apply':
-            solution = "F2 D1 L2 D1 U1 (5 move)"  # demo
+            solution = "F2 D1 L2 D1 U1 F2 D1 R3 L1 (9 move)"  # demo
             analyze_solution(self.r0, self.r1, solution)
 
         elif g == 'demo_apply_inverse':
-            solution = "U3 D3 L2 D3 F2 (5 move)"  # demo
+            solution = "L3 R1 D3 F2 U3 D3 L2 D3 F2 (9 move)"  # demo
             analyze_solution(self.r0, self.r1, solution)
 
         elif g == 'apply':
@@ -350,7 +363,10 @@ class Control(object):
         elif g == 'complete':
             # complete solvig cycle
             pick_scan_cube(self.r0, self.r1)
-            self.solver_resp = process_images_and_get_solution()
+            try:
+                self.solution = self.solver_resp.solution
+            except AttributeError as e:
+                print 'solver did not deliver a SolverResponse'
             analyze_solution(self.r0, self.r1, self.solver_resp.solution)
 
     def goal_received(self, goal):
@@ -371,9 +387,6 @@ class Control(object):
     def abort(self):
         self.r0._enabled = False
         self.r1._enabled = False
-
-
-
 
 
 if __name__ == '__main__':

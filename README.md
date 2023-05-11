@@ -1,32 +1,30 @@
 # Requirements
-
 - v4l2 (v4l-utils)
 - ROS melodic
+- ROS packages:
+  * http://wiki.ros.org/arbotix
+  * http://wiki.ros.org/dynamixel_motor
+  * http://wiki.ros.org/phantomx_reactor_arm
+  * 
+  
 - python 2.7
-  - cv2
-  - numpy
+  * cv2
+  * numpy
 
-# How to run
-1. Preparations
+# Preparations / Building
    * use terminal commands from the repository's base directory `catkin_ws`
-   * build catkin workspace if needed 
-   * use `$ conda activate masterprojekt` for the Terminal / Tabs if needed
-2. `$ roscore`
-3. `$ roslaunch control_dual_robot run.launch `
-   * or manually launch each package:
-     + robot_0.launch
-     + robot_1.launch
-     + (solver.launch)
-     + control.launch
-4. python run `src/control_dual_robot/scripts/run.py` (either in your IDE or from conda activated Terminal)
-   + or call a specific ROS action by replacing `GOAL_CODE` with any of the definitions in 
+   * build catkin workspace if needed
 
-     `src/control_dual_robot/scripts/control.py` inside `Control.execute`
-     ``` python
-     import rospy
-     rospy.init_node('control_client')
-     client = actionlib.SimpleActionClient('control', ControlAction)
-     client.wait_for_server()
-     goal = ControlGoal('GOAL_CODE')
-     client.send_goal(goal)
-     ```
+# Execution
+1. open Terminal CTRL + ALT + T
+2. (recommended) open a new Tab for each step using CTRL + SHIFT + T or the "right-click-context-menu"
+3. (recommended) execute `$ roscore`. This ensures we don't accidentally kill it when it's attached to a launch.
+4. launch modules:
+    - (not recommended) launch everything together: `$ roslaunch control_dual_robot all_at_once.launch`
+    - (recommended) launch each module separately (again in new tab each): 
+         + `$ roslaunch control_dual_robot robot_0.launch`
+         + `$ roslaunch control_dual_robot robot_1.launch`
+         + `$ conda activate masterprojekt && roslaunch twophase_solver_ros solver.launch`
+         + `$ conda activate masterprojekt && roslaunch control_dual_robot control.launch`
+
+5. select action from the dropdown and click on send goal

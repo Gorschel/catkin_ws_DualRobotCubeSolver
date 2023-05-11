@@ -1,5 +1,6 @@
 .vscode/
 .catkin_tools/
+.idea/
 /build/*
 /devel/*
 /logs/**/
