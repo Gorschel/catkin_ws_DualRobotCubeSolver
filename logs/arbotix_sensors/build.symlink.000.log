@@ -1,4 +1,0 @@
-Symlinking /home/georg/catkin_ws/devel/lib/pkgconfig/arbotix_sensors.pc
-Symlinking /home/georg/catkin_ws/devel/lib/python2.7/dist-packages/arbotix_sensors/__init__.py
-Symlinking /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig-version.cmake
-Symlinking /home/georg/catkin_ws/devel/share/arbotix_sensors/cmake/arbotix_sensorsConfig.cmake

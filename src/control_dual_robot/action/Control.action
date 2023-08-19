@@ -1,0 +1,9 @@
+# Define the goal
+string input  # Specify which dishwasher we want to use
+---
+# Define the result
+string resultcode
+string errorcode
+---
+# Define a feedback message
+string state

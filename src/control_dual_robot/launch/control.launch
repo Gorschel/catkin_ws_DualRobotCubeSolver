@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!--launch control node-->
+    <node name="control" pkg="control_dual_robot" type="control.py" output="screen"/>
+
+</launch>
