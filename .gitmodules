@@ -12,5 +12,5 @@
 	url = https://github.com/RobotnikAutomation/phantomx_reactor_arm
 [submodule "src/twophase_solver_ros"]
 	path = src/twophase_solver_ros
-	url = git@github.com:Gorschel/twophase_solver_ros.git
+	url = https://github.com/Gorschel/twophase_solver_ros
 
